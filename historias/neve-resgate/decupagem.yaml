@@ -1,0 +1,699 @@
+# A NEVE E O OUTRO MENINO — 50 planos, corte ágil
+#
+# Continuação de "O menino, o cão e o leão da montanha": mesma montanha, mesmo menino,
+# mesmo cão — agora no inverno. Ele conhece a montanha, então a vila o chama para achar
+# outro menino que saiu da pista de snowboard.
+#
+# RITMO (§3): média ~2,2s por plano — corte ágil. A curva é
+#   1-8 convocação (rápido, urgente) · 9-20 subida e rastro (cadência de busca)
+#   21-34 a pista errada e a queda (acelera) · 35-42 o encontro (respira)
+#   43-50 a descida e a vila (alívio, alarga)
+#
+# NARRAÇÃO EM BLOCO: só 16 dos 50 planos falam, em frases inteiras. Os outros correm
+# em ação, música e SFX. (No corte anterior toda plano tinha uma frase curta: 20
+# telegramas de 7 palavras, que soaram picotados e incharam o filme.)
+#
+# Adereço-guia: a MOCHILA VERMELHA (dele) e o CACHECOL LARANJA da vila, que ele amarra
+# no galho a cada bifurcação para marcar o caminho de volta — e é por eles que a vila
+# encontra os dois no fim.
+
+id: neve-resgate
+titulo: "A neve e o outro menino"
+
+formato:
+  size: "736x1312"
+  fps: 24
+
+voz: bella
+
+look:
+  global: "cold blue snowstorm daylight with warm amber lantern accents, heavy falling
+           snow, low contrast white-out haze, cinematic film grain, Pixar-style 3D
+           animated feature render"
+
+audio:
+  trilha: "cinematic emotional orchestral strings hopeful"
+
+personagens:
+  - id: menino
+    prompt: "A boy about ten years old with messy black hair, wearing a red winter coat
+             over a blue hoodie, snow trousers, boots, gloves and a red backpack, thin
+             and quick"
+    deriva_de:
+  - id: cao
+    prompt: "A medium mixed-breed dog with shaggy caramel fur, one folded ear and a
+             frayed rope collar, snow crusted on its back"
+    deriva_de: menino
+  - id: perdido
+    prompt: "A taller boy about thirteen with pale blond hair, a bright green snowboard
+             jacket, ski goggles pushed up on his forehead, one glove missing"
+    deriva_de: menino
+
+planos:
+  # ------------------------------------------------ 1-8 · a convocação (urgente)
+  - n: 1
+    dur: 2.5
+    enquadramento: geral
+    angulo: contra-plongee
+    camera: tilt
+    velocidade: normal
+    transicao_saida: corte
+    acao: "Heavy snow is falling over the same rocky mountain ridge, the peaks
+           disappearing into white as the storm rolls across them"
+    acao_b: "the ridge is almost gone behind the snow, only the darkest rocks still
+             showing"
+    refs: []
+    narracao: "A mesma montanha, três meses depois. Só que agora ela estava branca, e a neve não parava de cair."
+    sfx: [{q: "blizzard wind howling", vol: 0.35}]
+
+  - n: 2
+    dur: 2.0
+    enquadramento: medio
+    angulo: nivel
+    camera: pan
+    velocidade: normal
+    transicao_saida: corte
+    acao: "In the village square below, adults in heavy coats are hurrying between
+           houses, pointing up at the mountain, snow piling on their shoulders"
+    acao_b: "they have gathered into a tight worried group at the centre of the square"
+    refs: []
+
+  - n: 3
+    dur: 2.2
+    enquadramento: close
+    angulo: nivel
+    camera: handheld
+    velocidade: normal
+    transicao_saida: corte
+    acao: "A woman is knocking hard on a wooden door, snow blowing past her, calling
+           out with her hand cupped to her mouth"
+    acao_b: "the door is swinging open and lamplight is spilling onto her face"
+    refs: []
+    narracao: "Um menino tinha subido de snowboard pela manhã e não voltou."
+
+  - n: 4
+    dur: 2.0
+    enquadramento: medio
+    angulo: contra-plongee
+    camera: zoom-in
+    velocidade: normal
+    transicao_saida: corte
+    acao: "The boy is standing in the doorway pulling his red coat closed while the
+           adults talk over each other, snow blowing in around him"
+    acao_b: "he has stepped out into the snow, coat closed, looking up at the mountain"
+    refs: [menino]
+
+  - n: 5
+    dur: 2.2
+    enquadramento: close
+    angulo: rente-ao-chao
+    camera: zoom-punch
+    velocidade: normal
+    transicao_saida: corte
+    acao: "The dog is scrambling up from beside the fire and shaking itself hard,
+           throwing sparks of snow and hair, ears lifting"
+    acao_b: "the dog is standing alert at the door, tail rigid, looking up at the boy"
+    refs: [cao]
+    narracao: "Chamaram ele porque ele já tinha se perdido ali uma vez. Quem se perdeu conhece o caminho de errado."
+    sfx: [{q: "dog shake bark", vol: 0.4}]
+
+  - n: 6
+    dur: 2.0
+    enquadramento: detalhe
+    angulo: plongee
+    camera: pan
+    velocidade: normal
+    transicao_saida: corte
+    acao: "Hands are packing a red backpack fast on a table: a thermal blanket, a
+           whistle, a rope, an orange scarf being stuffed in last"
+    acao_b: "the backpack is being zipped shut and lifted off the table"
+    refs: []
+
+  - n: 7
+    dur: 1.8
+    enquadramento: detalhe
+    angulo: rente-ao-chao
+    camera: tracking
+    velocidade: normal
+    transicao_saida: corte
+    acao: "Boots are stamping down into fresh deep snow one after the other, paws
+           landing beside them, both breaking through the crust"
+    acao_b: "the boots have moved several steps further, deep holes left behind them"
+    refs: []
+    sfx: [{q: "footsteps snow crunch", vol: 0.45}]
+
+  - n: 8
+    dur: 2.5
+    enquadramento: geral
+    angulo: plongee
+    camera: tilt
+    velocidade: normal
+    transicao_saida: corte
+    acao: "Seen from above, the boy and the dog are walking out of the village and onto
+           the white slope, two tiny dark shapes leaving a single line of tracks behind
+           them"
+    acao_b: "they have climbed further up, the village smaller behind them, their track
+             a long thin line"
+    refs: [menino, cao]
+    narracao: "Saiu antes do meio-dia, com o cachorro na frente e a tarde inteira pela frente."
+
+  # ---------------------------------------- 9-20 · a subida e o rastro (cadência)
+  - n: 9
+    dur: 2.0
+    enquadramento: medio
+    angulo: nivel
+    camera: tracking
+    velocidade: normal
+    transicao_saida: corte
+    acao: "The boy is pushing up through knee-deep snow, leaning into the wind, one arm
+           raised against the flakes hitting his face"
+    acao_b: "he has climbed higher, further from the camera, still leaning into the
+             wind"
+    refs: [menino]
+
+  - n: 10
+    dur: 1.8
+    enquadramento: close
+    angulo: rente-ao-chao
+    camera: tracking
+    velocidade: normal
+    transicao_saida: corte
+    acao: "The dog is ploughing ahead through the snow with its nose down, swinging its
+           head side to side, sniffing hard along the surface"
+    acao_b: "the dog has stopped and lifted its head, ears forward, snow on its muzzle"
+    refs: [cao]
+
+  - n: 11
+    dur: 2.2
+    enquadramento: detalhe
+    angulo: plongee
+    camera: zoom-in
+    velocidade: normal
+    transicao_saida: corte
+    acao: "A single wide snowboard track is running across the fresh snow, its edge
+           already softening as new flakes fall into it"
+    acao_b: "the track is almost filled in, only a shallow dent left in the white"
+    refs: []
+    narracao: "O rastro da prancha ainda estava lá, mas a neve estava comendo ele depressa."
+
+  - n: 12
+    dur: 2.0
+    enquadramento: medio
+    angulo: contra-plongee
+    camera: pan
+    velocidade: normal
+    transicao_saida: corte
+    acao: "The boy is tying an orange scarf around a pine branch at a fork in the trail,
+           pulling the knot tight, the wind snapping the loose end"
+    acao_b: "the scarf is knotted and flying straight out in the wind like a small flag"
+    refs: [menino]
+
+  - n: 13
+    dur: 1.8
+    enquadramento: geral
+    angulo: nivel
+    camera: tracking-traseiro
+    velocidade: normal
+    transicao_saida: corte
+    acao: "Seen from behind, boy and dog are moving along the snowboard track into a
+           corridor of black pines heavy with snow"
+    acao_b: "they have gone deeper between the pines, the trees closing in behind them"
+    refs: [menino, cao]
+
+  - n: 14
+    dur: 2.0
+    enquadramento: detalhe
+    angulo: rente-ao-chao
+    camera: pan
+    velocidade: normal
+    transicao_saida: corte
+    acao: "Snow is sliding off a loaded pine branch and thumping down into the drift
+           below, the branch springing back up"
+    acao_b: "the branch is bare and still swinging, a crater in the snow beneath it"
+    refs: []
+    sfx: [{q: "snow falling from tree thud", vol: 0.4}]
+
+  - n: 15
+    dur: 2.2
+    enquadramento: close
+    angulo: nivel
+    camera: handheld
+    velocidade: normal
+    transicao_saida: corte
+    acao: "The boy is cupping his gloves around his mouth and shouting into the trees,
+           his breath bursting white, turning his head to listen"
+    acao_b: "he has stopped shouting and stands completely still, head tilted,
+             listening"
+    refs: [menino]
+    narracao: "Gritou o nome dele umas dez vezes. A neve engolia o som antes de chegar longe."
+
+  - n: 16
+    dur: 1.8
+    enquadramento: geral
+    angulo: plongee
+    camera: estatico
+    velocidade: normal
+    transicao_saida: corte
+    acao: "The white forest stands silent under the falling snow, nothing moving but
+           the flakes drifting down between the black trunks"
+    acao_b: "the snow is falling heavier, the far trees fading into white"
+    refs: []
+
+  - n: 17
+    dur: 2.0
+    enquadramento: medio
+    angulo: nivel
+    camera: tracking
+    velocidade: normal
+    transicao_saida: corte
+    acao: "The dog is trotting off the track toward the treeline, stopping, looking back
+           at the boy and barking twice, then pushing on"
+    acao_b: "the dog has moved off the path into the trees, half turned, waiting for
+             the boy to follow"
+    refs: [cao]
+    sfx: [{q: "dog bark snow", vol: 0.5}]
+
+  - n: 18
+    dur: 1.8
+    enquadramento: detalhe
+    angulo: plongee
+    camera: zoom-in
+    velocidade: normal
+    transicao_saida: corte
+    acao: "A red glove is lying half buried in the snow, the wind uncovering more of it
+           as the loose powder blows off"
+    acao_b: "the glove is fully uncovered, stiff with frost"
+    refs: []
+    narracao: "Foi o cachorro que achou a primeira coisa: uma luva."
+
+  - n: 19
+    dur: 2.0
+    enquadramento: close
+    angulo: rente-ao-chao
+    camera: zoom-punch
+    velocidade: normal
+    transicao_saida: corte
+    acao: "A gloved hand is picking the frozen glove out of the snow and turning it
+           over, shaking the crust off it"
+    acao_b: "the glove is held up close, ice falling from it"
+    refs: [menino]
+
+  - n: 20
+    dur: 2.2
+    enquadramento: medio
+    angulo: contra-plongee
+    camera: pan
+    velocidade: normal
+    transicao_saida: corte
+    acao: "The boy is turning to follow the dog off the marked run, stepping over the
+           rope of the piste boundary that leans crookedly in the snow"
+    acao_b: "he is on the other side of the boundary, the leaning rope behind him"
+    refs: [menino]
+    narracao: "A luva estava do lado errado da corda. Ele tinha saído da pista."
+
+  # ------------------------------------- 21-34 · a pista errada e a queda (acelera)
+  - n: 21
+    dur: 1.6
+    enquadramento: detalhe
+    angulo: rente-ao-chao
+    camera: tracking
+    velocidade: normal
+    transicao_saida: corte
+    acao: "Boots and paws are breaking into a run through deeper snow, powder exploding
+           up around every step"
+    acao_b: "both are further ahead, a churned trench of snow left behind"
+    refs: []
+    sfx: [{q: "running footsteps snow", vol: 0.45}]
+
+  - n: 22
+    dur: 1.8
+    enquadramento: geral
+    angulo: plongee
+    camera: pan
+    velocidade: normal
+    transicao_saida: corte
+    acao: "The snowboard track is swerving hard across the open slope and disappearing
+           over a lip where the ground drops away"
+    acao_b: "the camera has swung to the edge, the track ending in nothing at the lip"
+    refs: []
+
+  - n: 23
+    dur: 1.6
+    enquadramento: close
+    angulo: nivel
+    camera: zoom-punch
+    velocidade: normal
+    transicao_saida: zoom-punch
+    acao: "The boy is skidding to a stop at the edge, arms flying out for balance, snow
+           spraying off his boots into the drop"
+    acao_b: "he is stopped hard at the very lip, leaning back, arms wide"
+    refs: [menino]
+
+  - n: 24
+    dur: 2.5
+    enquadramento: geral
+    angulo: plongee
+    camera: tilt
+    velocidade: normal
+    transicao_saida: corte
+    acao: "The camera tilts down from the lip into a steep white bowl below, broken
+           trees and rocks scattered across it, snow blowing across the slope"
+    acao_b: "the full bowl is revealed below, deep and empty"
+    refs: []
+    narracao: "Do outro lado da corda a montanha ficava íngreme de repente. Era por isso que a corda estava lá."
+
+  - n: 25
+    dur: 1.8
+    enquadramento: detalhe
+    angulo: rente-ao-chao
+    camera: pan
+    velocidade: normal
+    transicao_saida: corte
+    acao: "A snowboard is sticking up out of the snow at an angle far down the slope,
+           its bindings hanging open and swinging in the wind"
+    acao_b: "the wind has pushed the board further over, snow building against it"
+    refs: []
+
+  - n: 26
+    dur: 2.0
+    enquadramento: medio
+    angulo: contra-plongee
+    camera: tracking
+    velocidade: normal
+    transicao_saida: corte
+    acao: "The boy is side-stepping down the steep slope, digging his heels in, one
+           hand dragging along the snow for balance"
+    acao_b: "he has descended several steps lower, a long scar in the snow above him"
+    refs: [menino]
+
+  - n: 27
+    dur: 1.6
+    enquadramento: close
+    angulo: rente-ao-chao
+    camera: tracking
+    velocidade: normal
+    transicao_saida: corte
+    acao: "The dog is bounding down past him in long leaps, snow bursting up at each
+           landing, ears flying"
+    acao_b: "the dog has landed far below, already turning to look back up"
+    refs: [cao]
+
+  - n: 28
+    dur: 1.8
+    enquadramento: geral
+    angulo: nivel
+    camera: estatico
+    velocidade: normal
+    transicao_saida: corte
+    acao: "Loose snow is sliding down the slope in a wide sheet, sweeping past the
+           broken trees and settling at the bottom"
+    acao_b: "the slide has stopped, a fresh smooth fan of snow at the base"
+    refs: []
+    sfx: [{q: "snow slide avalanche", vol: 0.45}]
+
+  - n: 29
+    dur: 2.0
+    enquadramento: medio
+    angulo: plongee
+    camera: pan
+    velocidade: normal
+    transicao_saida: corte
+    acao: "The boy is calling out again, turning slowly on the spot, scanning the rocks
+           and the broken trees around the bowl"
+    acao_b: "he has stopped turning, fixed on something below the rocks"
+    refs: [menino]
+    narracao: "O sol já estava baixo. Em montanha, quando o sol baixa, o frio deixa de ser desconforto e vira relógio."
+
+  - n: 30
+    dur: 1.6
+    enquadramento: detalhe
+    angulo: rente-ao-chao
+    camera: zoom-in
+    velocidade: normal
+    transicao_saida: corte
+    acao: "The dog is digging fast at the base of a rock, front paws throwing snow back
+           between its legs"
+    acao_b: "a hole is open in the snow and the dog has stopped, nose pushed into it"
+    refs: [cao]
+    sfx: [{q: "dog digging snow", vol: 0.4}]
+
+  - n: 31
+    dur: 1.8
+    enquadramento: close
+    angulo: nivel
+    camera: zoom-punch
+    velocidade: normal
+    transicao_saida: corte
+    acao: "The dog is throwing its head back and barking hard, over and over, breath
+           bursting white in the cold"
+    acao_b: "the dog is mid-bark, mouth wide, chest forward"
+    refs: [cao]
+    sfx: [{q: "dog barking alert", vol: 0.55}]
+
+  - n: 32
+    dur: 2.0
+    enquadramento: medio
+    angulo: contra-plongee
+    camera: tracking
+    velocidade: normal
+    transicao_saida: corte
+    acao: "The boy is running and half sliding down the last stretch of slope toward the
+           dog, snow spraying from his boots"
+    acao_b: "he has dropped to his knees beside the dog at the rock"
+    refs: [menino, cao]
+
+  - n: 33
+    dur: 2.5
+    enquadramento: close
+    angulo: plongee
+    camera: tilt
+    velocidade: normal
+    transicao_saida: corte
+    acao: "Gloved hands are scraping snow away from a gap under the rock, uncovering a
+           bright green sleeve, then a shoulder"
+    acao_b: "the arm and shoulder are clear of the snow, the green jacket bright against
+             the white"
+    refs: []
+    narracao: "E aí o cachorro começou a cavar."
+
+  - n: 34
+    dur: 2.2
+    enquadramento: close
+    angulo: nivel
+    camera: handheld
+    velocidade: normal
+    transicao_saida: corte
+    acao: "The lost boy's face is uncovered under the rock, lips blue, eyelashes frozen,
+           eyes opening slowly and trying to focus"
+    acao_b: "his eyes are open and moving, finding the other boy's face"
+    refs: [perdido]
+
+  # ------------------------------------------------- 35-42 · o encontro (respira)
+  - n: 35
+    dur: 3.0
+    enquadramento: medio
+    angulo: nivel
+    camera: handheld
+    velocidade: slow
+    transicao_saida: corte
+    acao: "The boy is pulling the older boy upright against the rock, brushing snow off
+           his chest and shoulders, holding him steady when he sags"
+    acao_b: "the older boy is sitting up against the rock, held by the shoulders,
+             head lifting"
+    refs: [menino, perdido]
+    narracao: "Ele estava vivo. Estava com muito frio, tremendo tanto que nem conseguia falar direito, mas estava vivo."
+
+  - n: 36
+    dur: 2.2
+    enquadramento: detalhe
+    angulo: plongee
+    camera: zoom-in
+    velocidade: normal
+    transicao_saida: corte
+    acao: "Hands are tearing open a foil thermal blanket, the wind snatching at it as it
+           unfolds and flashes in the low sun"
+    acao_b: "the blanket is fully open and being pulled around a shoulder"
+    refs: []
+
+  - n: 37
+    dur: 2.5
+    enquadramento: medio
+    angulo: nivel
+    camera: pan
+    velocidade: normal
+    transicao_saida: corte
+    acao: "The dog is climbing across the older boy's legs and pressing its whole body
+           against his chest, pushing its head under his chin"
+    acao_b: "the dog is settled tight against him and his arms have closed around it"
+    refs: [cao, perdido]
+    narracao: "O cachorro deitou em cima dele. Foi o que mais o esquentou, mais que a manta."
+
+  - n: 38
+    dur: 2.0
+    enquadramento: close
+    angulo: rente-ao-chao
+    camera: zoom-in
+    velocidade: normal
+    transicao_saida: corte
+    acao: "The older boy's shaking hands are closing around a small metal cup, steam
+           lifting off it into the cold air"
+    acao_b: "the cup is at his lips and the steam is on his face"
+    refs: [perdido]
+
+  - n: 39
+    dur: 2.2
+    enquadramento: medio
+    angulo: contra-plongee
+    camera: handheld
+    velocidade: normal
+    transicao_saida: corte
+    acao: "The boy is blowing hard into a whistle, cheeks puffed, turning to send the
+           sound around the bowl, the dog barking beside him"
+    acao_b: "he has lowered the whistle and is listening, hand at his ear"
+    refs: [menino, cao]
+    sfx: [{q: "whistle blow loud", vol: 0.5}]
+
+  - n: 40
+    dur: 2.0
+    enquadramento: geral
+    angulo: plongee
+    camera: tilt
+    velocidade: normal
+    transicao_saida: corte
+    acao: "Far up at the lip of the bowl, the orange scarf is whipping on its branch
+           against the darkening sky"
+    acao_b: "the camera has tilted to show lantern lights appearing on the ridge beyond
+             the scarf"
+    refs: []
+    narracao: "Lá em cima, o cachecol laranja ainda estava amarrado no galho, batendo no vento."
+
+  - n: 41
+    dur: 2.2
+    enquadramento: medio
+    angulo: nivel
+    camera: tracking
+    velocidade: normal
+    transicao_saida: corte
+    acao: "The two boys are getting up together, the older one's arm over the younger
+           one's shoulders, taking the first unsteady steps through the snow"
+    acao_b: "they have taken several steps, finding a rhythm, the dog moving ahead"
+    refs: [menino, perdido]
+
+  - n: 42
+    dur: 2.5
+    enquadramento: geral
+    angulo: contra-plongee
+    camera: tracking-traseiro
+    velocidade: normal
+    transicao_saida: corte
+    acao: "Seen from behind, the three of them are climbing back up the slope toward the
+           scarf, the sky going orange and violet behind the ridge"
+    acao_b: "they have reached the lip, silhouetted against the last light"
+    refs: [menino, perdido]
+    narracao: "Subiram de volta seguindo o cachecol, e o sol foi embora no meio da subida."
+
+  # --------------------------------------------- 43-50 · a descida e a vila (alívio)
+  - n: 43
+    dur: 2.0
+    enquadramento: detalhe
+    angulo: rente-ao-chao
+    camera: tracking
+    velocidade: normal
+    transicao_saida: corte
+    acao: "Four boots and four paws are walking downhill through the snow in the blue
+           dusk, moving steadily one after the other"
+    acao_b: "they have advanced further down the slope, the tracks stretching behind"
+    refs: []
+    sfx: [{q: "footsteps snow crunch", vol: 0.4}]
+
+  - n: 44
+    dur: 2.2
+    enquadramento: geral
+    angulo: nivel
+    camera: pan
+    velocidade: normal
+    transicao_saida: corte
+    acao: "A line of lantern lights is coming up the mountain toward them, swinging as
+           the villagers climb, voices carrying through the snow"
+    acao_b: "the lanterns are much closer, the figures behind them taking shape"
+    refs: []
+
+  - n: 45
+    dur: 2.0
+    enquadramento: medio
+    angulo: contra-plongee
+    camera: handheld
+    velocidade: normal
+    transicao_saida: corte
+    acao: "The villagers are reaching them and closing in, hands taking the older boy's
+           weight, a blanket going over his shoulders"
+    acao_b: "he is surrounded and supported, being turned downhill"
+    refs: [perdido]
+    narracao: "Encontraram as lanternas no meio do caminho. Ninguém precisou explicar nada."
+
+  - n: 46
+    dur: 2.2
+    enquadramento: close
+    angulo: nivel
+    camera: zoom-in
+    velocidade: normal
+    transicao_saida: corte
+    acao: "A woman is dropping to her knees in the snow and pulling the older boy
+           against her, her shoulders shaking"
+    acao_b: "she is holding him tight with her face pressed into his hood"
+    refs: [perdido]
+
+  - n: 47
+    dur: 2.5
+    enquadramento: geral
+    angulo: plongee
+    camera: tilt
+    velocidade: normal
+    transicao_saida: corte
+    acao: "Seen from above, the whole group is walking down the last slope toward the
+           village, lanterns swinging, snow still falling through the light"
+    acao_b: "they are almost at the first houses, the lantern line strung out behind
+             them"
+    refs: []
+    narracao: "Chegaram na vila já de noite fechada, com a neve ainda caindo."
+
+  - n: 48
+    dur: 2.2
+    enquadramento: medio
+    angulo: nivel
+    camera: pan
+    velocidade: normal
+    transicao_saida: corte
+    acao: "In the village square, doors are opening and people are running out into the
+           snow, arms up, calling to each other"
+    acao_b: "the square has filled with people crowding around the returning group"
+    refs: []
+    sfx: [{q: "crowd cheering happy", vol: 0.45}]
+
+  - n: 49
+    dur: 2.5
+    enquadramento: close
+    angulo: rente-ao-chao
+    camera: handheld
+    velocidade: normal
+    transicao_saida: corte
+    acao: "The dog is spinning in the middle of the crowd with people crouching to rub
+           its head and back, snow flying off its fur"
+    acao_b: "the dog has stopped and is leaning into a pair of hands, tail whipping"
+    refs: [cao]
+    narracao: "E quem todo mundo quis abraçar primeiro, claro, foi o cachorro."
+
+  - n: 50
+    dur: 3.5
+    enquadramento: geral
+    angulo: contra-plongee
+    camera: zoom-in
+    velocidade: slow
+    transicao_saida: corte
+    acao: "The two boys are standing together in the lit square looking back up at the
+           dark mountain, snow falling through the lantern light, the dog sitting
+           between them"
+    acao_b: "they have turned to each other and the younger boy is grinning, the
+             mountain white behind them"
+    refs: [menino, perdido, cao]
+    narracao: "A montanha continuou lá, branca e enorme. Mas naquela noite ninguém ficou sozinho nela."

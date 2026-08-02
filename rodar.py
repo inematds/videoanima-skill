@@ -64,6 +64,72 @@ def semear(spec_path, D):
     return destino
 
 
+def clipes_lote_agnes(itens, janela=65, por_janela=4, espaco_poll=4):
+    """Submete TODOS os clipes e colhe em paralelo, respeitando os dois rate limits.
+
+    MEDIDO: no laco serial (submete -> espera pronto -> submete o proximo) cada clipe
+    custava ~170s de parede, dos quais so ~30s eram geracao — o resto era espera
+    ociosa. Como a Agnes e assincrona, o teto real e o rate limit de criacao
+    (5/min): 50 clipes saem em ~15 min de submissao com a geracao acontecendo em
+    paralelo, em vez de ~2h20.
+
+    O polling TAMBEM tem limite proprio, entao as consultas sao espacadas e feitas
+    uma de cada vez, em rodizio — nunca em rajada.
+
+    `itens`: lista de dicts {n, dest, fa, fb, prompt, seg}. Devolve {n: movimento}.
+    """
+    fila, em_voo, subs, saida = list(itens), {}, [], {}
+    while fila or em_voo:
+        agora = time.time()
+        subs[:] = [t for t in subs if agora - t < janela]
+        if fila and len(subs) < por_janela:
+            it = fila.pop(0)
+            vid = P.agnes_submit(it['fa'], it['fb'], it['prompt'], it['seg'])
+            subs.append(time.time())
+            if vid:
+                em_voo[it['n']] = dict(it, vid=vid)
+                print(f"  [p{it['n']:02d}] submetido ({len(em_voo)} em voo, "
+                      f"{len(fila)} na fila)")
+            elif it.get('tent', 1) < 2:
+                fila.append(dict(it, tent=it.get('tent', 1) + 1))
+            else:
+                print(f"  [p{it['n']:02d}] FALHOU ao submeter")
+            continue
+        if not em_voo:
+            time.sleep(3)          # fila travada so pelo rate limit
+            continue
+        n = next(iter(em_voo))
+        it = em_voo.pop(n)
+        est = P.agnes_estado(it['vid'], it['dest'])
+        if est == 'esperando':
+            em_voo[n] = it         # volta para o fim do rodizio
+            time.sleep(espaco_poll)
+            continue
+        if est == 'erro':
+            if it.get('tent', 1) < 2:
+                print(f'  [p{n:02d}] erro — recolocando na fila')
+                fila.append(dict(it, tent=it.get('tent', 1) + 1))
+            else:
+                print(f'  [p{n:02d}] FALHOU')
+            continue
+        mv = M.movimento(it['dest'])
+        # PORTAO DE MOVIMENTO: clipe parado e foto com deriva. Uma segunda tentativa
+        # com a ordem de movimento reforcada antes de deixar entrar na montagem.
+        if mv < LIMIAR_MOV and it.get('tent', 1) < 2:
+            print(f'  [p{n:02d}] mov {mv:.2f} < {LIMIAR_MOV} — refazendo reforçado')
+            os.remove(it['dest'])
+            fila.append(dict(it, tent=it.get('tent', 1) + 1,
+                             prompt=it['prompt'] + ' The subject is in constant visible '
+                                    'motion from the first frame to the last; nothing '
+                                    'in the frame is frozen.'))
+            continue
+        saida[n] = mv
+        print(f"  [p{n:02d}] ok {P.dur(it['dest']):.1f}s · mov {mv:.2f}"
+              + ('  ⚠️ ainda parado' if mv < LIMIAR_MOV else '')
+              + f'  ({len(fila)} na fila, {len(em_voo)} em voo)')
+    return saida
+
+
 def preview_custo(planos, pi, pv):
     n_img = len(planos) * 2
     seg = sum(p['dur'] for p in planos)
@@ -238,7 +304,29 @@ def main():
     print('\n[4/5] CLIPES')
     lim = P.RATE_LIMIT_VID.get(a.video)
     feitos = 0
-    for pl in planos:
+    if a.video == 'agnes':
+        # caminho em LOTE: submete tudo e colhe em paralelo (ver clipes_lote_agnes)
+        itens = []
+        for pl in planos:
+            n = pl['n']
+            mp4 = f'{VD}/p{n:02d}.mp4'
+            ka, kb = f'{D}/img/p{n:02d}-a.png', f'{D}/img/p{n:02d}-b.png'
+            if os.path.exists(mp4) or not os.path.exists(ka):
+                continue
+            fator = G.VELOCIDADE.get(pl.get('velocidade', 'normal'), 1.0)
+            itens.append({'n': n, 'dest': mp4, 'fa': P.data_uri(ka),
+                          'fb': P.data_uri(kb) if os.path.exists(kb) else P.data_uri(ka),
+                          'prompt': G.prompt_de_video(pl),
+                          'seg': max(1.0, pl['dur'] * fator)})
+        if itens:
+            print(f'  {len(itens)} clipes em lote (5/min de teto na criação)')
+            mv = clipes_lote_agnes(itens)
+            if mv:
+                print(f'  movimento médio: {sum(mv.values())/len(mv):.2f}')
+        planos_serial = []
+    else:
+        planos_serial = planos
+    for pl in planos_serial:
         n = pl['n']
         mp4 = f'{VD}/p{n:02d}.mp4'
         if os.path.exists(mp4):

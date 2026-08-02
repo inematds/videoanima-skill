@@ -209,45 +209,74 @@ def _frames(seg):
     return max(9, min(441, int(n * 8 + 1)))
 
 
-def vid_agnes(dest, kf_a, kf_b, prompt, seg, tentativas=4, negativo=None):
-    """Agnes agnes-video-v2.0 em modo keyframes [A, B] — US$ 0.
+def agnes_submit(kf_a, kf_b, prompt, seg, negativo=None, tentativas=4):
+    """So SUBMETE o clipe e devolve o video_id (a Agnes e assincrona).
 
-    Rate limit REAL de 5 req/min (429) — quem chama pausa. O `size` da resposta
-    mente (pede 736x1312, entrega arredondado): medir com ffprobe se importar.
+    Separado de `agnes_colher` para permitir LOTE: com o laco serial
+    (submete -> espera -> submete) cada clipe custava 170s de parede, dos quais
+    ~140s eram espera ociosa. Submetendo todos e colhendo depois, o tempo de
+    parede cai para o teto do rate limit + a geracao do ultimo lote.
     """
-    # negative_prompt EXISTE no endpoint de video (nao existe no de imagem) — e era
-    # a defesa padrao contra "still frame" que nos faltou no primeiro corte.
     body = {'model': 'agnes-video-v2.0', 'prompt': prompt,
             'num_frames': _frames(seg), 'frame_rate': FPS, 'seed': SEED,
             'width': 736, 'height': 1312,
             'negative_prompt': negativo or NEGATIVO_PADRAO,
             'extra_body': {'image': [kf_a, kf_b], 'mode': 'keyframes'}}
     h = {'Authorization': 'Bearer ' + chave('AGNES_API_KEY')}
-    vid = None
     for t in range(1, tentativas + 1):
         try:
             d = _post('https://apihub.agnes-ai.com/v1/videos', body, h, timeout=300)
-            vid = d.get('video_id') or d.get('task_id') or d.get('id')
-            break
+            return d.get('video_id') or d.get('task_id') or d.get('id')
         except urllib.error.HTTPError as e:
-            print(f'    agnes vid HTTP {e.code}', flush=True)
+            print(f'    agnes submit HTTP {e.code}', flush=True)
             time.sleep(70 if e.code == 429 else 6 * t)
         except Exception as e:
-            print(f'    agnes vid: {str(e)[:90]}', flush=True)
+            print(f'    agnes submit: {str(e)[:90]}', flush=True)
             time.sleep(6 * t)
+    return None
+
+
+def agnes_estado(vid, dest):
+    """Consulta UMA vez. -> 'pronto' (ja baixado) | 'erro' | 'esperando'.
+
+    O polling tambem tem rate limit proprio (medido no videos-agnes), entao quem
+    chama espaca as consultas — nunca consultar em rajada.
+    """
+    h = {'Authorization': 'Bearer ' + chave('AGNES_API_KEY')}
+    try:
+        d = _get('https://apihub.agnes-ai.com/agnesapi?video_id=' + vid, h)
+    except Exception:
+        return 'esperando'
+    st = d.get('status')
+    if st == 'completed':
+        u = d.get('url') or (d.get('data') or [{}])[0].get('url') or d.get('video_url')
+        if not u:
+            return 'erro'
+        try:
+            _baixar(u, dest)
+            return 'pronto'
+        except Exception as e:
+            print(f'    agnes download: {str(e)[:80]}', flush=True)
+            return 'erro'
+    return 'erro' if st == 'failed' else 'esperando'
+
+
+def vid_agnes(dest, kf_a, kf_b, prompt, seg, tentativas=4, negativo=None):
+    """Agnes agnes-video-v2.0 em modo keyframes [A, B] — US$ 0. Caminho serial.
+
+    Rate limit REAL de 5 req/min (429) na criacao E no polling. O `size` da resposta
+    mente (pede 736x1312, entrega arredondado): medir com ffprobe se importar.
+    """
+    vid = agnes_submit(kf_a, kf_b, prompt, seg, negativo, tentativas)
     if not vid:
         return None
     t0 = time.time()
     while time.time() - t0 < 1800:
-        try:
-            d = _get('https://apihub.agnes-ai.com/agnesapi?video_id=' + vid, h)
-            if d.get('status') == 'completed':
-                u = d.get('url') or (d.get('data') or [{}])[0].get('url') or d.get('video_url')
-                return _baixar(u, dest) if u else None
-            if d.get('status') == 'failed':
-                return None
-        except Exception:
-            pass
+        e = agnes_estado(vid, dest)
+        if e == 'pronto':
+            return dest
+        if e == 'erro':
+            return None
         time.sleep(12)
     return None
 

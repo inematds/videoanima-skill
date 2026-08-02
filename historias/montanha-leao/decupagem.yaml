@@ -1,0 +1,297 @@
+# O MENINO, O CÃO E O LEÃO DA MONTANHA — 20 planos
+#
+# Continuidade: cada plano começa exatamente onde o anterior parou. A ação é uma
+# corrida única, sem elipse — por isso os planos herdam direção de movimento
+# (menino sempre correndo da esquerda para a direita, o leão vindo por trás) e o
+# adereço-guia é a MOCHILA VERMELHA: ela aparece no plano 1, é perdida no 11 e
+# reaparece no 19. Objeto que atravessa a história é o que faz o espectador
+# sentir que é o mesmo dia, o mesmo menino.
+#
+# Curva de ritmo (§3 do doc): cadenciado (1-5) -> perseguição acelerada (6-15)
+# -> respiração e desfecho (16-20).
+
+id: montanha-leao
+titulo: "O menino, o cão e o leão da montanha"
+
+formato:
+  size: "736x1312"
+  fps: 24
+
+voz: rachel
+
+look:
+  global: "cold blue mountain dusk light with warm amber rim from the low sun, high
+           contrast, drifting mist, cinematic film grain, Pixar-style 3D animated feature render"
+
+audio:
+  trilha: ""
+
+personagens:
+  - id: menino
+    prompt: "A boy about ten years old with messy black hair, a red backpack, a blue
+             hoodie and muddy sneakers, thin and quick, scraped knees"
+    deriva_de:
+  - id: cao
+    prompt: "A medium mixed-breed dog with shaggy caramel fur, one folded ear and a
+             frayed rope collar"
+    deriva_de: menino
+  - id: leao
+    prompt: "A large tawny mountain lion with a scarred muzzle and heavy shoulders,
+             low predatory stance"
+    deriva_de:
+
+planos:
+  # ---------------------------------------------------- 1-5 · o erro (cadenciado)
+  - n: 1
+    dur: 4.0
+    enquadramento: geral
+    angulo: contra-plongee
+    camera: tilt
+    velocidade: normal
+    transicao_saida: corte
+    acao: "A boy and his dog small on a high rocky mountain ridge, an ocean of peaks
+           behind them, last sunlight leaving the stone"
+    refs: [menino, cao]
+    narracao: "A trilha era pra durar uma tarde."
+    texto_tela:
+      estilo: palavra-a-palavra
+      conteudo: "era pra durar UMA TARDE"
+
+  - n: 2
+    dur: 3.0
+    enquadramento: detalhe
+    angulo: plongee
+    camera: pan
+    velocidade: normal
+    transicao_saida: corte
+    acao: "A hand-drawn paper trail map soaked and torn, held over the same grey rock,
+           the painted path ending in a tear"
+    refs: []
+    narracao: "Mas o mapa acabava no meio do papel."
+
+  - n: 3
+    dur: 3.5
+    enquadramento: medio
+    angulo: nivel
+    camera: handheld
+    velocidade: normal
+    transicao_saida: corte
+    acao: "The boy turning in place on the ridge, looking for a trail marker that is
+           not there, the dog circling his legs, wind lifting his hoodie"
+    refs: [menino, cao]
+    narracao: "Ele girou duas vezes procurando a marca amarela nas pedras."
+
+  - n: 4
+    dur: 3.0
+    enquadramento: close
+    angulo: rente-ao-chao
+    camera: zoom-in
+    velocidade: normal
+    transicao_saida: corte
+    acao: "The dog's head snapping toward the dark treeline below, ears rigid, muzzle
+           low, fur rising along the spine"
+    refs: [cao]
+    narracao: "O cachorro parou antes dele."
+
+  - n: 5
+    dur: 3.0
+    enquadramento: geral
+    angulo: nivel
+    camera: estatico
+    velocidade: normal
+    transicao_saida: zoom-punch
+    acao: "Far below on the slope, a tawny shape steps out of the pine shadows and
+           stops, facing uphill toward the camera"
+    refs: [leao]
+    narracao: "E lá embaixo, entre os pinheiros, alguma coisa também tinha parado."
+    texto_tela:
+      estilo: estatico
+      conteudo: "corre"
+
+  # -------------------------------------- 6-15 · a perseguição (rápido, sem folga)
+  - n: 6
+    dur: 2.0
+    enquadramento: close
+    angulo: contra-plongee
+    camera: zoom-punch
+    velocidade: normal
+    transicao_saida: corte
+    acao: "The mountain lion's scarred face filling the frame as it roars, cold dusk
+           light in its eyes"
+    refs: [leao]
+    narracao: "Um leão da montanha."
+
+  - n: 7
+    dur: 2.5
+    enquadramento: detalhe
+    angulo: rente-ao-chao
+    camera: tracking
+    velocidade: normal
+    transicao_saida: corte
+    acao: "Muddy sneakers hammering across loose scree, small stones spraying
+           sideways, dust rising"
+    refs: [menino]
+    narracao: "Correram."
+
+  - n: 8
+    dur: 3.0
+    enquadramento: medio
+    angulo: nivel
+    camera: tracking
+    velocidade: normal
+    transicao_saida: corte
+    acao: "The boy sprinting left to right along a narrow ledge, red backpack bouncing,
+           the dog running just ahead of him"
+    refs: [menino, cao]
+    narracao: "O cachorro na frente, escolhendo o caminho."
+
+  - n: 9
+    dur: 2.5
+    enquadramento: geral
+    angulo: plongee
+    camera: pan
+    velocidade: normal
+    transicao_saida: corte
+    acao: "Seen from above, the mountain lion pouring over the rocks behind them,
+           closing the gap in long low bounds"
+    refs: [leao]
+    narracao: "Ele vinha rápido. Muito rápido."
+
+  - n: 10
+    dur: 3.0
+    enquadramento: medio
+    angulo: contra-plongee
+    camera: tracking
+    velocidade: speed-ramp
+    transicao_saida: corte
+    acao: "The ledge crumbling under the boy's foot, a slab of rock breaking away and
+           falling into the void as he lunges forward"
+    refs: [menino]
+    narracao: "A pedra cedeu debaixo do pé dele."
+
+  - n: 11
+    dur: 3.0
+    enquadramento: close
+    angulo: plongee
+    camera: tilt
+    velocidade: slow
+    transicao_saida: corte
+    acao: "The red backpack slipping off one shoulder and tumbling down into the
+           misty gorge, straps flailing"
+    refs: []
+    narracao: "A mochila foi embora com ela."
+    texto_tela:
+      estilo: palavra-a-palavra
+      conteudo: "a mochila FOI EMBORA"
+
+  - n: 12
+    dur: 3.0
+    enquadramento: geral
+    angulo: nivel
+    camera: tracking-traseiro
+    velocidade: normal
+    transicao_saida: corte
+    acao: "Boy and dog reaching a fallen pine trunk bridging a deep gorge, mist boiling
+           underneath, the far side barely visible"
+    refs: [menino, cao]
+    narracao: "O caminho terminava num tronco caído sobre o abismo."
+
+  - n: 13
+    dur: 3.5
+    enquadramento: detalhe
+    angulo: rente-ao-chao
+    camera: tracking
+    velocidade: slow
+    transicao_saida: corte
+    acao: "Sneakers and paws crossing the wet bark of the trunk step by step, the wood
+           flexing, splinters lifting"
+    refs: []
+    narracao: "Passaram um de cada vez, sem olhar pra baixo."
+
+  - n: 14
+    dur: 2.5
+    enquadramento: medio
+    angulo: contra-plongee
+    camera: zoom-punch
+    velocidade: normal
+    transicao_saida: zoom-punch
+    acao: "The dog turning back on the far end of the trunk, planted and barking at
+           the mountain lion stepping onto the other side"
+    refs: [cao, leao]
+    narracao: "O cachorro voltou. Ficou no meio do caminho, latindo."
+
+  - n: 15
+    dur: 3.0
+    enquadramento: geral
+    angulo: plongee
+    camera: tilt
+    velocidade: speed-ramp
+    transicao_saida: corte
+    acao: "The pine trunk snapping and dropping into the mist, the mountain lion
+           scrambling back onto its own ledge, the gorge now open between them"
+    refs: [leao]
+    narracao: "E o tronco quebrou no meio."
+
+  # ------------------------------------------------- 16-20 · o fôlego e o desfecho
+  - n: 16
+    dur: 4.0
+    enquadramento: close
+    angulo: nivel
+    camera: handheld
+    velocidade: normal
+    transicao_saida: corte
+    acao: "The boy on his knees hugging the dog against his chest, both shaking,
+           breath fogging in the cold air"
+    refs: [menino, cao]
+    narracao: "Do outro lado, os dois só respiravam."
+
+  - n: 17
+    dur: 3.0
+    enquadramento: medio
+    angulo: contra-plongee
+    camera: pan
+    velocidade: normal
+    transicao_saida: corte
+    acao: "Across the gorge the mountain lion paces once, watches, then turns and
+           dissolves back into the pines"
+    refs: [leao]
+    narracao: "O leão andou de um lado pro outro e desistiu."
+
+  - n: 18
+    dur: 3.5
+    enquadramento: geral
+    angulo: nivel
+    camera: zoom-in
+    velocidade: normal
+    transicao_saida: corte
+    acao: "Deep in the blue night valley below, two small flashlight beams sweeping
+           the slope, searching upward"
+    refs: []
+    narracao: "Lá embaixo, duas lanternas varriam a encosta."
+
+  - n: 19
+    dur: 3.5
+    enquadramento: detalhe
+    angulo: plongee
+    camera: zoom-in
+    velocidade: normal
+    transicao_saida: corte
+    acao: "A flashlight beam finding the muddy red backpack caught in a bush at the
+           bottom of the gorge"
+    refs: []
+    narracao: "A primeira coisa que acharam foi a mochila vermelha."
+
+  - n: 20
+    dur: 4.0
+    enquadramento: geral
+    angulo: contra-plongee
+    camera: zoom-in
+    velocidade: slow
+    transicao_saida: corte
+    acao: "Silhouettes on the ridge under a sky full of stars, the boy carried on his
+           father's back, the dog walking ahead down the trail"
+    refs: [menino, cao]
+    narracao: "A segunda coisa foram eles dois, descendo a montanha juntos."
+    texto_tela:
+      estilo: estatico
+      conteudo: "juntos"

@@ -1,0 +1,84 @@
+# Decupagem — o contrato entre a historia e o pipeline.
+# Escrita ANTES de gastar qualquer chamada, para ser lida e corrigida a olho nu.
+# Colunas espelham §2 do doc de referencia (doc/analise-estilo-fbvideo.md).
+
+id: exemplo
+titulo: "O reencontro no sertão"
+
+formato:
+  size: "736x1312"     # 9:16 vertical. 16:9 seria "1312x736".
+  fps: 24
+
+voz: rachel            # inemavox / chatterbox
+
+look:
+  global: sertao-golden-hour     # chave de gramatica.LOOKS ou texto livre em ingles
+
+audio:
+  trilha: ""           # caminho de um .mp3/.wav; baixe pelo inemavox/dlp
+                       # (montagem.baixar_audio) — a musica abaixa sozinha sob a fala
+
+# Personagens: descricao FIXA em ingles, repetida literal em todo plano que os usa.
+# A primeira e a ancora-mae (deriva_de vazio); as demais derivam dela por img2img,
+# porque gerar em paralelo produz individuos diferentes.
+personagens:
+  - id: menino
+    prompt: "A seven-year-old Brazilian boy from the sertão, short dark hair, worn
+             yellow t-shirt, blue shorts, flip-flops, thin build, warm brown skin"
+    deriva_de:
+  - id: cao
+    prompt: "A scruffy small mixed-breed dog, sandy brown fur, one ear folded"
+    deriva_de: menino
+
+# Planos. dur e a duracao PLANEJADA — se a narracao daquele plano for mais longa,
+# o pipeline estica o plano (a fala manda) e avisa.
+planos:
+  - n: 1
+    dur: 2.0
+    enquadramento: detalhe        # detalhe | close | medio | geral
+    angulo: rente-ao-chao         # nivel | plongee | contra-plongee | rente-ao-chao
+    camera: tracking              # estatico|pan|tilt|tracking|tracking-traseiro|zoom-in|zoom-punch|handheld
+    velocidade: normal            # normal | slow | speed-ramp
+    transicao_saida: corte        # corte | zoom-punch
+    acao: "Bare feet in flip-flops running fast over cracked dry earth, dust kicking up"
+    refs: [menino]
+    narracao: "Ele correu antes mesmo do sol nascer inteiro."
+    texto_tela:
+      estilo: palavra-a-palavra   # palavra-a-palavra | card | estatico
+      conteudo: "ele CORREU antes do sol"
+
+  - n: 2
+    dur: 3.0
+    enquadramento: geral
+    angulo: contra-plongee
+    camera: tracking
+    velocidade: speed-ramp
+    transicao_saida: corte
+    acao: "The boy and the dog leap over a wooden fence, backlit by low sun"
+    refs: [menino, cao]
+    narracao: "O cachorro foi junto, como sempre foi."
+
+  - n: 3
+    dur: 4.0
+    enquadramento: close
+    angulo: nivel
+    camera: zoom-in
+    velocidade: slow
+    transicao_saida: corte
+    acao: "Close on the old grandfather's face, eyes wet, cangaceiro leather hat"
+    refs: []
+    narracao: "No fim da estrada, o avô já esperava."
+
+  - n: 4
+    dur: 4.0
+    enquadramento: geral
+    angulo: nivel
+    camera: zoom-in
+    velocidade: normal
+    transicao_saida: corte
+    acao: "Silhouette of the boy hugging the old man against the setting sun"
+    refs: [menino]
+    narracao: "E o sertão inteiro pareceu ficar em silêncio."
+    texto_tela:
+      estilo: estatico
+      conteudo: "uma história do sertão"

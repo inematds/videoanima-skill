@@ -224,45 +224,71 @@ def montar(D, planos, spec, base, vdir=None):
     dbruto = dur(bruto)
 
     # ---- audio na linha do tempo: cada fala e cada SFX entra no segundo em que cai
-    entradas, ramos, nomes = [], [], []
-    def por(arq, atraso_s, vol, rot):
+    #
+    # DUAS CAMADAS, nao uma. A VOZ e o filme; SFX e trilha sao LEITO. Foram medidos
+    # juntos num amix chapado e o resultado foi um filme que parecia mudo: o vento de
+    # 45s (`sfx-blizzard-wind-howling`) rodava por cima de dezenas de planos a 0.45 e
+    # deixava a locucao 6 dB ABAIXO dele. Agora o leito e abaixado pela voz (sidechain)
+    # e cada SFX e cortado ao plano — o comentario "corta-se no ffmpeg depois" existia
+    # desde que `--max-duration` subiu para 45s, mas o corte nunca foi escrito.
+    entradas, ramos, vozes, leito = [], [], [], []
+    def por(arq, atraso_s, vol, rot, lista, lim=None):
         entradas.extend(['-i', arq])
         i = len(entradas) // 2
         ms = int(max(0, atraso_s) * 1000)
-        ramos.append(f'[{i}:a]aresample=44100,volume={vol},adelay={ms}|{ms}[{rot}]')
-        nomes.append(f'[{rot}]')
+        # atrim ANTES do adelay: o corte e no material, nao na linha do tempo.
+        corte = f'atrim=0:{lim:.2f},afade=t=out:st={max(0.0, lim - 0.35):.2f}:d=0.35,' if lim else ''
+        ramos.append(f'[{i}:a]aresample=44100,{corte}volume={vol},adelay={ms}|{ms}[{rot}]')
+        lista.append(f'[{rot}]')
     for pl in planos:
         n = pl['n']
         if n not in offsets:
             continue
         wav = f'{D}/narracao/p{n:02d}.wav'
         if os.path.exists(wav):
-            por(wav, offsets[n], 1.0, f'v{n}')
+            por(wav, offsets[n], 1.0, f'v{n}', vozes)
         for j, s in enumerate(_sfx_do_plano(D, pl)):
             if os.path.exists(s['arq']):
-                por(s['arq'], offsets[n] + s['em'], s['vol'], f's{n}_{j}')
+                # o SFX pertence ao plano: nao pode vazar para os planos seguintes
+                sobra = max(0.6, float(pl.get('dur', 2.0)) - s['em'])
+                por(s['arq'], offsets[n] + s['em'], s['vol'], f's{n}_{j}', leito, lim=sobra)
+    # PORTAO DE VOZ, simetrico ao de duracao: um filme com narracao escrita que sai sem
+    # ela e o defeito que passou batido (97s, zero voz, nenhuma linha de erro).
+    escritas = sum(1 for pl in planos if (pl.get('narracao') or '').strip())
+    if escritas and not vozes:
+        print(f'   ⛔ {escritas} narrações escritas e NENHUMA entrou na mixagem — '
+              f'o filme sairia mudo. Confira {D}/narracao/.')
+    elif escritas and len(vozes) < escritas:
+        print(f'   ⚠️ {escritas - len(vozes)} de {escritas} narrações não entraram na '
+              f'mixagem (wav ausente ou plano fora do corte)')
     final = f'{D}/{base}.mp4'
     LOUD = 'loudnorm=I=-14:TP=-1.5:LRA=11'
-    if not nomes:
+    if not vozes and not leito:
         _sh(['ffmpeg', '-loglevel', 'error', '-i', bruto, '-f', 'lavfi',
              '-i', 'anullsrc=r=44100:cl=stereo', '-c:v', 'copy', '-c:a', 'aac',
              '-shortest', '-movflags', '+faststart', '-y', final])
         print(f'   {dur(final):.1f}s · {os.path.getsize(final)/1048576:.1f}MB (sem áudio)')
         return final
-    fc = ';'.join(ramos)
-    fc += f";{''.join(nomes)}amix=inputs={len(nomes)}:duration=longest:normalize=0[falado]"
     trilha = spec.get('audio', {}).get('trilha')
     if trilha and os.path.exists(trilha):
-        # a trilha carrega emocao, nao disputa com a voz: sidechain abaixa a musica
-        # sozinha quando ha locucao. alimiter antes do loudnorm evita NaN (medido).
         entradas.extend(['-stream_loop', '-1', '-i', trilha])
         im = len(entradas) // 2 - 1
-        fc += (f';[{im}:a]aresample=44100,volume=0.28[m];[falado]asplit=2[vz][key];'
-               f'[m][key]sidechaincompress=threshold=0.03:ratio=8:attack=20:release=400[duck];'
+        ramos.append(f'[{im}:a]aresample=44100,atrim=0:{dbruto:.2f},volume=0.28[mus]')
+        leito.append('[mus]')
+    fc = ';'.join(ramos)
+    if vozes:
+        fc += f";{''.join(vozes)}amix=inputs={len(vozes)}:duration=longest:normalize=0[falado]"
+    if leito:
+        fc += f";{''.join(leito)}amix=inputs={len(leito)}:duration=longest:normalize=0[leito]"
+    if vozes and leito:
+        # o leito nao disputa com a voz: o sidechain o abaixa enquanto ha locucao.
+        # alimiter antes do loudnorm evita NaN (medido).
+        fc += (f';[falado]asplit=2[vz][key];'
+               f'[leito][key]sidechaincompress=threshold=0.02:ratio=12:attack=15:release=350[duck];'
                f'[vz][duck]amix=inputs=2:duration=first:normalize=0,'
                f'alimiter=limit=0.95,{LOUD}[a]')
     else:
-        fc += f';[falado]alimiter=limit=0.95,{LOUD}[a]'
+        fc += f';[{"falado" if vozes else "leito"}]alimiter=limit=0.95,{LOUD}[a]'
     ok = _sh(['ffmpeg', '-loglevel', 'error', '-i', bruto, *entradas,
               '-filter_complex', fc, '-map', '0:v', '-map', '[a]',
               '-c:v', 'copy', '-c:a', 'aac', '-b:a', '160k', '-t', f'{dbruto:.2f}',
@@ -340,7 +366,9 @@ def baixar_audio(consulta, dest, tipo='sfx', max_seg=None):
            '--prefer', 'freesound', '--json']
     if max_seg:
         cmd += ['--max-duration', str(int(max_seg))]
-    r = subprocess.run(cmd, capture_output=True, text=True, cwd=VOX, env=env, timeout=300)
+    # musica e arquivo grande: 300s ja estourou e a trilha ficou de fora sem alarde
+    r = subprocess.run(cmd, capture_output=True, text=True, cwd=VOX, env=env,
+                       timeout=900 if tipo == 'musica' else 300)
     # o JSON vem indentado em varias linhas: ler a ultima linha pega so "}".
     bruto = r.stdout[r.stdout.find('{'):r.stdout.rfind('}') + 1]
     try:

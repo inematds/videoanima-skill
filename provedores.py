@@ -245,6 +245,19 @@ def agnes_estado(vid, dest):
     h = {'Authorization': 'Bearer ' + chave('AGNES_API_KEY')}
     try:
         d = _get('https://apihub.agnes-ai.com/agnesapi?video_id=' + vid, h)
+    except urllib.error.HTTPError as e:
+        # MEDIDO: quando o job morre do lado da Agnes, a consulta passa a devolver
+        # 400/404 — nao um status 'failed'. Engolir isso como 'esperando' fazia o
+        # job ocupar a fila ate o prazo (25 min) em vez de falhar em segundos.
+        if e.code in (400, 404):
+            corpo = ''
+            try:
+                corpo = e.read().decode()[:120]
+            except Exception:
+                pass
+            print(f'    agnes job {vid[:16]} morto (HTTP {e.code}) {corpo}', flush=True)
+            return 'erro'
+        return 'esperando'
     except Exception:
         return 'esperando'
     st = d.get('status')

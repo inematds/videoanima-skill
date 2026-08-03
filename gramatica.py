@@ -8,6 +8,7 @@ duracao — mais o ritmo de corte e as camadas de look/texto/audio.
 Aqui esse vocabulario vira: (a) fragmentos de prompt em ingles para o gerador de imagem,
 (b) descricao de movimento para o gerador de video, (c) numeros de ritmo para validacao.
 """
+import re
 
 # ---------------------------------------------------------------- enquadramento
 # §2 do doc usa 4 escalas. Elas mudam o que a imagem PRECISA conter.
@@ -130,6 +131,15 @@ def prompt_de_imagem(plano, personagens, look, refs_usadas):
     return ' '.join(partes)
 
 
+def prompt_de_video_minimo(plano):
+    """So a ordem de movimento. Hipotese a testar: em modo keyframes o gerador e
+    guiado pelas IMAGENS ("the input image is the primary driver", who_am_i do Kling)
+    e o texto longo pode ate atrapalhar, mandando conciliar o que a imagem nao mostra.
+    """
+    mov, _ = CAMERA[plano['camera']]
+    return f'{mov}. Continuous fluid motion, the subject moves the whole time.'
+
+
 def prompt_de_video(plano):
     """Descreve para o gerador o movimento entre os keyframes A e B.
 
@@ -139,8 +149,16 @@ def prompt_de_video(plano):
     a foto de volta.
     """
     mov, _ = CAMERA[plano['camera']]
-    partes = [plano['acao'].strip().rstrip('.') + '.']
-    fim = (plano.get('acao_b') or '').strip().rstrip('.')
+    # `acao_video` existe porque o filtro de conteudo do endpoint de VIDEO da Agnes e
+    # mais estrito que o do gerador de imagem (o inemaimg local nem tem filtro).
+    # MEDIDO: crianca em contato fisico ("the dog pressing against his chest", "the
+    # older one's arm over the younger one's shoulders") volta
+    # content_policy_violation — e volta ASSINCRONO, como HTTP 400 na consulta de
+    # status, nao na submissao. Reescrever so o texto do video preserva a imagem, que
+    # ja passou.
+    acao = plano.get('acao_video') or plano['acao']
+    partes = [acao.strip().rstrip('.') + '.']
+    fim = (plano.get('acao_b_video') or plano.get('acao_b') or '').strip().rstrip('.')
     if fim:
         # o "para onde vai" e o que da ao gerador um caminho a percorrer
         partes.append(f'Through the shot the action continues: {fim}.')
@@ -165,6 +183,54 @@ def dica_keyframe_b(plano):
     if fim:
         return f'{fim}, and {CAMERA[plano["camera"]][1]}'
     return CAMERA[plano['camera']][1]
+
+
+def validar_prompts(planos):
+    """Pega negacao escrita na acao — o erro que mais se repete.
+
+    MEDIDO e documentado (NOTAS da Agnes, README do videos-agnes): a negacao vira
+    ATRATOR. Pedir "no two tails" traz a segunda cauda; "no people in the frame" traz
+    gente. E o flux2-klein nem aceita `negative_prompt` (docs/flux2-klein.md), entao
+    nao ha para onde mandar o que nao se quer: tudo tem que ser dito no POSITIVO —
+    descrever o que ESTA no quadro, nao o que falta.
+    """
+    NEG = re.compile(r'\b(no|not|nothing|without|never|avoid|remove)\s+[a-z]', re.I)
+    avisos = []
+    for p in planos:
+        for campo in ('acao', 'acao_b', 'acao_video', 'acao_b_video'):
+            txt = p.get(campo) or ''
+            m = NEG.search(txt)
+            if m:
+                avisos.append(f"plano {p['n']} ({campo}): negacao \"{txt[m.start():m.start()+34]}...\" "
+                              f"— a negacao vira atrator; reescreva no positivo.")
+    return avisos
+
+
+def validar_estrutura(planos):
+    """Valores fora do vocabulario, antes de gastar.
+
+    Motivo: um decupador externo (LLM local, no teste de 2026-08-03) escreveu
+    `camera: zoom-out`, que nao existe aqui — o pipeline so quebraria com KeyError
+    depois de gerar 80 imagens. Vocabulario invalido tem que morrer na validacao.
+    """
+    CAMPOS = {'enquadramento': ENQUADRAMENTO, 'angulo': ANGULO, 'camera': CAMERA,
+              'velocidade': VELOCIDADE}
+    TIPOS = {'acao', 'revelacao', 'tableau'}
+    avisos = []
+    for p in planos:
+        for campo, tabela in CAMPOS.items():
+            v = p.get(campo)
+            if v is not None and v not in tabela:
+                avisos.append(f"plano {p['n']}: {campo}='{v}' nao existe. "
+                              f"Use: {' | '.join(sorted(tabela))}")
+        tp = p.get('tipo_plano')
+        if tp is not None and tp not in TIPOS:
+            avisos.append(f"plano {p['n']}: tipo_plano='{tp}' invalido ({' | '.join(sorted(TIPOS))})")
+        if not (p.get('acao') or '').strip():
+            avisos.append(f"plano {p['n']}: sem `acao`")
+        if p.get('tipo_plano') == 'acao' and not (p.get('acao_b') or '').strip():
+            avisos.append(f"plano {p['n']}: plano de acao sem `acao_b` — o clipe sai parado")
+    return avisos
 
 
 def validar_ritmo(planos):

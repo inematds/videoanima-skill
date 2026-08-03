@@ -85,6 +85,46 @@ def movimento(mp4):
     return sum(vs) / len(vs) if vs else 0.0
 
 
+def clipe_de_imagem(png, dest, seg, camera='zoom-in', size='736x1312', fps=30):
+    """Plano SEM geracao de video: a camera se move sobre a imagem parada.
+
+    Por que existe: um plano que e um ESTADO (a prancha largada, a luva na neve, a
+    floresta em silencio) nao tem o que animar. Mandar para o gerador e pedir que ele
+    invente mudanca — e ele inventa: o snowboard trocou de cor e de angulo entre A e B,
+    a luva "abriu os dedos". Aqui a imagem e a verdade e so a camera se move.
+
+    Ganhos medidos ao trocar geracao por este caminho:
+      - zero deriva de objeto (a imagem e literalmente a mesma)
+      - zero risco de filtro de conteudo (nao passa por API)
+      - duracao exata pedida (o gerador arredonda)
+      - instantaneo e gratuito
+    O preco: nao ha movimento de sujeito. Por isso so vale para plano de estado —
+    usar em plano de acao devolve o slideshow que queriamos matar.
+    """
+    w, h = (int(x) for x in size.split('x'))
+    n = max(2, int(round(seg * fps)))
+    # trabalha numa versao ampliada: sobra margem para deslocar sem borda preta
+    base = f'scale={int(w*1.25)}:{int(h*1.25)}:force_original_aspect_ratio=increase,crop={int(w*1.2)}:{int(h*1.2)}'
+    mov = {
+        # push-in lento: o mais seguro, sempre le como intencao
+        'zoom-in':   f"zoompan=z='min(zoom+0.0009,1.18)':d={n}:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)'",
+        'zoom-punch': f"zoompan=z='min(zoom+0.0018,1.30)':d={n}:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)'",
+        # pan/tilt: zoom fixo e o quadro desliza
+        'pan':       f"zoompan=z=1.12:d={n}:x='(iw-iw/zoom)*(on/{n})':y='ih/2-(ih/zoom/2)'",
+        'tilt':      f"zoompan=z=1.12:d={n}:x='iw/2-(iw/zoom/2)':y='(ih-ih/zoom)*(on/{n})'",
+        'tracking':  f"zoompan=z=1.12:d={n}:x='(iw-iw/zoom)*(on/{n})':y='ih/2-(ih/zoom/2)'",
+        'tracking-traseiro': f"zoompan=z='min(zoom+0.0007,1.14)':d={n}:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)'",
+        # 'estatico' nao e imovel: uma deriva minima evita a sensacao de foto colada
+        'estatico':  f"zoompan=z='min(zoom+0.0003,1.06)':d={n}:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)'",
+        'handheld':  f"zoompan=z=1.10:d={n}:x='iw/2-(iw/zoom/2)+sin(on/18)*6':y='ih/2-(ih/zoom/2)+cos(on/23)*5'",
+    }.get(camera, f"zoompan=z='min(zoom+0.0009,1.18)':d={n}:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)'")
+    vf = f'{base},{mov}:s={w}x{h}:fps={fps},format=yuv420p'
+    ok = _sh(['ffmpeg', '-loglevel', 'error', '-loop', '1', '-i', png, '-vf', vf,
+              '-t', f'{seg:.2f}', '-r', str(fps), '-c:v', 'libx264', '-crf', '20',
+              '-pix_fmt', 'yuv420p', '-an', '-y', dest])
+    return dest if ok else None
+
+
 def slug(t):
     return ''.join(c if c.isalnum() else '-' for c in t.lower()).strip('-')[:40]
 
@@ -120,8 +160,9 @@ def _plano(D, pl, T, size='736x1312', vdir=None):
     from gramatica import VELOCIDADE
     fator = VELOCIDADE.get(pl.get('velocidade', 'normal'), 1.0)
     dv = dur(vp) / fator                      # slow motion estica o clipe gerado
-    da = dur(ap) if os.path.exists(ap) else 0
-    alvo = max(dv, da + 0.4, pl['dur'])
+    # a duracao e a ESCRITA na decupagem. A narracao nao manda mais: ela e encaixada
+    # depois, na linha do tempo, e pode atravessar planos.
+    alvo = pl['dur'] if pl.get('dur') else dv
 
     v = [f'scale={size.replace("x", ":")}:force_original_aspect_ratio=increase',
          f'crop={size.replace("x", ":")}',
@@ -140,49 +181,38 @@ def _plano(D, pl, T, size='736x1312', vdir=None):
     fc = '[0:v]' + ','.join(v) + '[v]'
 
     out = f'{T}/p{n:02d}.mp4'
-    # §7: SFX do plano. Ja baixados em D/audio por rodar.py — aqui e so mixagem,
-    # nunca rede: montagem que baixa arquivo trava o filme por causa de um efeito.
-    sfx = [s for s in _sfx_do_plano(D, pl) if os.path.exists(s['arq'])]
-    entradas, ramos, nomes = [], [], []
-    if da:
-        entradas += ['-i', ap]
-        ramos.append(f'[{len(entradas)//2}:a]apad=pad_dur={max(0, alvo-da):.2f},'
-                     f'atrim=0:{alvo:.2f},asetpts=PTS-STARTPTS[voz]')
-        nomes.append('[voz]')
-    for i, s in enumerate(sfx):
-        entradas += ['-i', s['arq']]
-        # adelay posiciona o efeito no beat; o efeito acompanha o plano, nao o filme
-        ramos.append(f"[{len(entradas)//2}:a]volume={s['vol']},"
-                     f"adelay={int(s['em']*1000)}|{int(s['em']*1000)},"
-                     f"atrim=0:{alvo:.2f},asetpts=PTS-STARTPTS[s{i}]")
-        nomes.append(f'[s{i}]')
-    if nomes:
-        fc += ';' + ';'.join(ramos)
-        if len(nomes) > 1:
-            # normalize=0: sem isso o amix DIVIDE o volume da voz pelo numero de
-            # entradas, e cada SFX adicionado deixa a narracao mais baixa.
-            fc += (f";{''.join(nomes)}amix=inputs={len(nomes)}:duration=first:"
-                   f"normalize=0[a]")
-        else:
-            fc += f';{nomes[0]}anull[a]'
-        cmd = ['ffmpeg', '-loglevel', 'error', '-i', vp, *entradas,
-               '-filter_complex', fc, '-map', '[v]', '-map', '[a]', '-t', f'{alvo:.2f}']
-    else:
-        cmd = ['ffmpeg', '-loglevel', 'error', '-i', vp, '-f', 'lavfi',
-               '-i', 'anullsrc=r=44100:cl=stereo', '-filter_complex', fc,
-               '-map', '[v]', '-map', '1:a', '-t', f'{alvo:.2f}']
-    cmd += ['-c:v', 'libx264', '-crf', '20', '-pix_fmt', 'yuv420p',
-            '-r', '30', '-c:a', 'aac', '-y', out]
+    # A parte de video e MUDA. O audio nao mora mais no plano: ele e montado na linha
+    # do tempo do filme (ver montar). Duas razoes medidas:
+    #   - a fala deixa de esticar o plano; o ritmo escrito na decupagem sobrevive
+    #     (antes: 106s planejados viravam 150s, 62s viravam 95s)
+    #   - some o `adelay` por parte, que torcia os carimbos de tempo e fazia o concat
+    #     abortar no meio (45s de 158s)
+    cmd = ['ffmpeg', '-loglevel', 'error', '-i', vp, '-filter_complex', fc,
+           '-map', '[v]', '-an', '-t', f'{alvo:.2f}',
+           '-c:v', 'libx264', '-crf', '20', '-pix_fmt', 'yuv420p',
+           '-r', '30', '-avoid_negative_ts', 'make_zero', '-y', out]
     return out if _sh(cmd) else None
 
 
 def montar(D, planos, spec, base, vdir=None):
-    # tmp por PROVEDOR: dois runs simultaneos (agnes e kling) escreviam p07.mp4 no
-    # mesmo lugar e um levava o clipe do outro para o filme final.
+    """Monta o filme: video mudo primeiro, audio depois, na linha do tempo.
+
+    A ordem importa. Antes o audio era colado dentro de cada plano, e a fala mandava
+    na duracao — o filme inflava e o ritmo escrito morria. Agora cada plano tem a
+    duracao que a decupagem pediu, e a locucao e encaixada por cima, podendo
+    atravessar planos. Consistencia e ritmo primeiro; a fala se acomoda.
+    """
     T = f'{D}/tmp-{os.path.basename(vdir or "video")}'
     os.makedirs(T, exist_ok=True)
     size = spec.get('formato', {}).get('size', '736x1312')
-    partes = [p for p in (_plano(D, pl, T, size, vdir) for pl in planos) if p]
+    partes, offsets, t0 = [], {}, 0.0
+    for pl in planos:
+        p = _plano(D, pl, T, size, vdir)
+        if not p:
+            continue
+        partes.append(p)
+        offsets[pl['n']] = t0
+        t0 += dur(p)
     if not partes:
         return None
     lst = f'{T}/lista.txt'
@@ -190,27 +220,57 @@ def montar(D, planos, spec, base, vdir=None):
     bruto = f'{T}/bruto.mp4'
     _sh(['ffmpeg', '-loglevel', 'error', '-f', 'concat', '-safe', '0', '-i', lst,
          '-c:v', 'libx264', '-crf', '22', '-preset', 'medium', '-pix_fmt', 'yuv420p',
-         '-c:a', 'aac', '-b:a', '160k', '-y', bruto])
+         '-an', '-y', bruto])
+    dbruto = dur(bruto)
 
+    # ---- audio na linha do tempo: cada fala e cada SFX entra no segundo em que cai
+    entradas, ramos, nomes = [], [], []
+    def por(arq, atraso_s, vol, rot):
+        entradas.extend(['-i', arq])
+        i = len(entradas) // 2
+        ms = int(max(0, atraso_s) * 1000)
+        ramos.append(f'[{i}:a]aresample=44100,volume={vol},adelay={ms}|{ms}[{rot}]')
+        nomes.append(f'[{rot}]')
+    for pl in planos:
+        n = pl['n']
+        if n not in offsets:
+            continue
+        wav = f'{D}/narracao/p{n:02d}.wav'
+        if os.path.exists(wav):
+            por(wav, offsets[n], 1.0, f'v{n}')
+        for j, s in enumerate(_sfx_do_plano(D, pl)):
+            if os.path.exists(s['arq']):
+                por(s['arq'], offsets[n] + s['em'], s['vol'], f's{n}_{j}')
     final = f'{D}/{base}.mp4'
-    trilha = spec.get('audio', {}).get('trilha')
-    # MEDIDO: sem normalizar, o filme sai a -30,7 LUFS integrado — plataforma social
-    # entrega perto de -14, entao no celular fica quase inaudivel. TTS e SFX chegam
-    # cada um num nivel; so o passo final ve o programa inteiro e pode nivelar.
     LOUD = 'loudnorm=I=-14:TP=-1.5:LRA=11'
+    if not nomes:
+        _sh(['ffmpeg', '-loglevel', 'error', '-i', bruto, '-f', 'lavfi',
+             '-i', 'anullsrc=r=44100:cl=stereo', '-c:v', 'copy', '-c:a', 'aac',
+             '-shortest', '-movflags', '+faststart', '-y', final])
+        print(f'   {dur(final):.1f}s · {os.path.getsize(final)/1048576:.1f}MB (sem áudio)')
+        return final
+    fc = ';'.join(ramos)
+    fc += f";{''.join(nomes)}amix=inputs={len(nomes)}:duration=longest:normalize=0[falado]"
+    trilha = spec.get('audio', {}).get('trilha')
     if trilha and os.path.exists(trilha):
-        # §7: a trilha existe para carregar emocao, nao para disputar com a voz.
-        # sidechaincompress abaixa a musica sozinha quando ha locucao.
-        _sh(['ffmpeg', '-loglevel', 'error', '-i', bruto, '-stream_loop', '-1', '-i', trilha,
-             '-filter_complex',
-             '[1:a]volume=0.28[m];[0:a]asplit=2[voz][key];'
-             '[m][key]sidechaincompress=threshold=0.03:ratio=8:attack=20:release=400[duck];'
-             f'[voz][duck]amix=inputs=2:duration=first:dropout_transition=0,{LOUD}[a]',
-             '-map', '0:v', '-map', '[a]', '-c:v', 'copy', '-c:a', 'aac', '-b:a', '160k',
-             '-movflags', '+faststart', '-shortest', '-y', final])
+        # a trilha carrega emocao, nao disputa com a voz: sidechain abaixa a musica
+        # sozinha quando ha locucao. alimiter antes do loudnorm evita NaN (medido).
+        entradas.extend(['-stream_loop', '-1', '-i', trilha])
+        im = len(entradas) // 2 - 1
+        fc += (f';[{im}:a]aresample=44100,volume=0.28[m];[falado]asplit=2[vz][key];'
+               f'[m][key]sidechaincompress=threshold=0.03:ratio=8:attack=20:release=400[duck];'
+               f'[vz][duck]amix=inputs=2:duration=first:normalize=0,'
+               f'alimiter=limit=0.95,{LOUD}[a]')
     else:
-        _sh(['ffmpeg', '-loglevel', 'error', '-i', bruto, '-af', LOUD,
-             '-c:v', 'copy', '-c:a', 'aac', '-b:a', '160k',
+        fc += f';[falado]alimiter=limit=0.95,{LOUD}[a]'
+    ok = _sh(['ffmpeg', '-loglevel', 'error', '-i', bruto, *entradas,
+              '-filter_complex', fc, '-map', '0:v', '-map', '[a]',
+              '-c:v', 'copy', '-c:a', 'aac', '-b:a', '160k', '-t', f'{dbruto:.2f}',
+              '-movflags', '+faststart', '-y', final])
+    # NUNCA entregar filme truncado em silencio (ja aconteceu: 26s no lugar de 150s)
+    if not ok or dur(final) < dbruto * 0.95:
+        print(f'   ⚠️ passo de áudio falhou ({dur(final):.1f}s de {dbruto:.1f}s) — entregando mudo')
+        _sh(['ffmpeg', '-loglevel', 'error', '-i', bruto, '-c', 'copy',
              '-movflags', '+faststart', '-y', final])
     print(f'   {dur(final):.1f}s · {os.path.getsize(final)/1048576:.1f}MB')
     return final
@@ -297,3 +357,50 @@ def baixar_audio(consulta, dest, tipo='sfx', max_seg=None):
               '-ac', '2', '-y', dest])
     shutil.rmtree(tmp, ignore_errors=True)
     return dest if ok else None
+
+
+def folha_roteiro(D, planos, dest, colunas=5, larg=300):
+    """Folha de contato ANOTADA: cada quadro com a ação e a narração embaixo.
+
+    A folha simples (`folha_de_contato`) prova continuidade visual, mas nao deixa
+    conferir se a imagem bate com a HISTORIA — e esse e o erro caro, porque so aparece
+    no filme montado. Aqui o roteiro fica ao lado do quadro.
+
+    Custo de revisao (medido): olhar um keyframe inteiro sai por ~1.290 tokens e o
+    prompt dele por ~105; esta folha inteira sai por ~70 tokens por plano. E o jeito
+    barato de revisar 50 planos — abrir imagem solta so no que a folha acusar.
+    """
+    from PIL import Image, ImageDraw, ImageFont
+    import textwrap
+    try:
+        f_tit = ImageFont.truetype(FONTE, 15)
+        f_txt = ImageFont.truetype(FONTE.replace('-Bold', ''), 13)
+    except Exception:
+        f_tit = f_txt = ImageFont.load_default()
+    itens = [pl for pl in planos if os.path.exists(f"{D}/img/p{pl['n']:02d}-a.png")]
+    if not itens:
+        return None
+    alt_img = int(larg * 1312 / 736)
+    alt_txt = 130
+    cel = (larg, alt_img + alt_txt)
+    linhas = (len(itens) + colunas - 1) // colunas
+    folha = Image.new('RGB', (colunas * cel[0], linhas * cel[1]), (16, 16, 18))
+    d = ImageDraw.Draw(folha)
+    for i, pl in enumerate(itens):
+        x, y = (i % colunas) * cel[0], (i // colunas) * cel[1]
+        im = Image.open(f"{D}/img/p{pl['n']:02d}-a.png").resize((larg, alt_img))
+        folha.paste(im, (x, y))
+        tipo = pl.get('tipo_plano', 'acao')
+        cab = (f"{pl['n']:02d} · {pl.get('enquadramento','')[:3]}/{pl.get('camera','')[:9]}"
+               f" · {tipo}" + (f" · {pl['dur']}s" if pl.get('dur') else ''))
+        d.text((x + 6, y + alt_img + 4), cab, font=f_tit, fill=(255, 190, 90))
+        yy = y + alt_img + 24
+        for lin in textwrap.wrap((pl.get('acao') or '')[:130], int(larg/7.6))[:3]:
+            d.text((x + 6, yy), lin, font=f_txt, fill=(170, 170, 175)); yy += 15
+        nar = (pl.get('narracao') or '').strip()
+        if nar:
+            for lin in textwrap.wrap('♪ ' + nar[:110], int(larg/7.6))[:3]:
+                d.text((x + 6, yy), lin, font=f_txt, fill=(120, 200, 255)); yy += 15
+    folha.save(dest, quality=88)
+    print(f'   folha-roteiro: {len(itens)} planos em {linhas}x{colunas}')
+    return dest

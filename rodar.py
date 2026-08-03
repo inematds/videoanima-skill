@@ -64,7 +64,7 @@ def semear(spec_path, D):
     return destino
 
 
-def clipes_lote_agnes(itens, janela=65, por_janela=4, espaco_poll=4):
+def clipes_lote_agnes(itens, janela=65, por_janela=4, espaco_poll=4, prazo=1500):
     """Submete TODOS os clipes e colhe em paralelo, respeitando os dois rate limits.
 
     MEDIDO: no laco serial (submete -> espera pronto -> submete o proximo) cada clipe
@@ -87,7 +87,7 @@ def clipes_lote_agnes(itens, janela=65, por_janela=4, espaco_poll=4):
             vid = P.agnes_submit(it['fa'], it['fb'], it['prompt'], it['seg'])
             subs.append(time.time())
             if vid:
-                em_voo[it['n']] = dict(it, vid=vid)
+                em_voo[it['n']] = dict(it, vid=vid, desde=time.time())
                 print(f"  [p{it['n']:02d}] submetido ({len(em_voo)} em voo, "
                       f"{len(fila)} na fila)")
             elif it.get('tent', 1) < 2:
@@ -102,9 +102,15 @@ def clipes_lote_agnes(itens, janela=65, por_janela=4, espaco_poll=4):
         it = em_voo.pop(n)
         est = P.agnes_estado(it['vid'], it['dest'])
         if est == 'esperando':
-            em_voo[n] = it         # volta para o fim do rodizio
-            time.sleep(espaco_poll)
-            continue
+            # PRAZO por job: sem isso, um job que nunca responde 'completed' faz o
+            # laco consultar para sempre (aconteceu: 10h presas em 2 clipes).
+            if time.time() - it['desde'] > prazo:
+                print(f'  [p{n:02d}] sem resposta em {prazo}s — desistindo desse job')
+                est = 'erro'
+            else:
+                em_voo[n] = it     # volta para o fim do rodizio
+                time.sleep(espaco_poll)
+                continue
         if est == 'erro':
             if it.get('tent', 1) < 2:
                 print(f'  [p{n:02d}] erro — recolocando na fila')
@@ -150,20 +156,39 @@ def main():
                     help='para depois dos keyframes e monta a folha de contato, '
                          'para conferir a cena antes de gastar video')
     ap.add_argument('--sim', action='store_true', help='nao pergunta antes de gastar')
+    ap.add_argument('--prompt-minimo', action='store_true',
+                    help='manda so a ordem de movimento ao gerador de video, sem '
+                         'descrever a cena — sai em video-<provedor>-min/')
     a = ap.parse_args()
 
     spec_path = resolver_spec(a.historia)
     S = carregar(spec_path)
     nome = S.get('id') or os.path.basename(os.path.dirname(os.path.abspath(spec_path)))
     planos = S['planos']
-    person = {p['id']: p['prompt'] for p in S.get('personagens', [])}
+    B = S.get('biblia', {})
+    elenco = B.get('personagens') or S.get('personagens', [])
+    ambientes = B.get('ambientes') or S.get('ambientes', [])
+    ficha = lambda x: (x.get('imutavel') or x.get('prompt') or '').strip()
+    person = {p['id']: ficha(p) for p in elenco}
+    person.update({amb['id']: ficha(amb) for amb in ambientes})
     look_pad = S.get('look', {}).get('global', 'neutro-cinema')
+    # LOOK POR BLOCO: o look global dizia literalmente "daylight" e os 50 planos
+    # herdavam — a busca do fim de tarde e a chegada noturna saiam com luz de meio-dia.
+    # `blocos: [{planos: [1, 8], look: "..."}]` pinta a faixa; o plano ainda pode ter
+    # o seu proprio `look`, que vence.
+    for b in S.get('blocos', []) or []:
+        faixa = b.get('planos') or []
+        if not (b.get('look') and len(faixa) == 2):
+            continue
+        for pl in S['planos']:
+            if faixa[0] <= pl['n'] <= faixa[1] and not pl.get('look'):
+                pl['look'] = b['look']
     size = S.get('formato', {}).get('size', '736x1312')
 
     print(f'\n{"="*60}\n{S.get("titulo", nome)}\n{"="*60}')
 
     # -------- 0. sanidade de ritmo (§3 do doc) antes de qualquer gasto
-    for av in G.validar_ritmo(planos):
+    for av in G.validar_estrutura(planos) + G.validar_ritmo(planos) + G.validar_prompts(planos):
         print(f'  ⚠️  {av}')
     custo = preview_custo(planos, a.img, a.video)
     if a.so_decupagem:
@@ -175,8 +200,8 @@ def main():
     D = f'{OUT_BASE}/{nome}'
     # video separado POR PROVEDOR: rodar agnes e kling na mesma historia tem que
     # dar dois filmes comparaveis, nao um sobrescrevendo o outro.
-    VD = f'{D}/video-{a.video}'
-    for sub in ('', '/img', '/narracao', f'/video-{a.video}'):
+    VD = f'{D}/video-{a.video}' + ('-min' if a.prompt_minimo else '')
+    for sub in ('', '/img', '/narracao', '/' + os.path.basename(VD)):
         os.makedirs(D + sub, exist_ok=True)
     spec_path = semear(spec_path, D)
     est = f'{D}/estado.json'
@@ -194,19 +219,24 @@ def main():
     # com um adulto no lugar da crianca e ninguem entende por que.
     CRIANCA = ('boy', 'girl', 'child', 'kid', 'toddler', 'baby', 'year-old')
     if a.img == 'agnes':
-        alvo = [p['id'] for p in S.get('personagens', [])
-                if any(w in p['prompt'].lower() for w in CRIANCA)]
+        alvo = [p['id'] for p in elenco if any(w in ficha(p).lower() for w in CRIANCA)]
         if alvo:
             print(f'  ⚠️  personagem-criança na Agnes ({alvo}): o filtro de conteúdo '
                   f'bloqueia (400).\n      Use --img inemaimg (local, sem filtro) '
                   f'ou reescreva como personagem não-humano.')
-    for p in S.get('personagens', []):
+    for p in elenco + ambientes:
         pid, png = p['id'], f"{D}/img/anc-{p['id']}.png"
         if pid in E['urls'] and os.path.exists(png):
             print(f'  [{pid}] ok'); continue
         mae = p.get('deriva_de')
         refs = [E['urls'][mae]] if mae and mae in E['urls'] else None
-        prompt = (p['prompt'] + '. Character model sheet, three-quarter view, plain background. '
+        # ambiente nao e model sheet: e uma vista ampla do lugar, que servira de
+        # referencia para todo plano que se passa ali (antes cada plano inventava a vila)
+        e_ambiente = any(x['id'] == pid for x in ambientes)
+        prompt = (ficha(p) + '. '
+                  + ('Wide establishing view of this place, no characters. '
+                     if e_ambiente else
+                     'Character model sheet, three-quarter view, plain background. ')
                   + G.LOOKS.get(look_pad, look_pad) + '.')
         u = gerar_img(png, prompt, refs, size)
         print(f'  [{pid}] {"ok" if u else "FALHOU"}')
@@ -214,7 +244,7 @@ def main():
             E['urls'][pid] = u; salvar()
     # Sem ancora nao ha consistencia de personagem: os planos sairiam com pessoas
     # diferentes a cada quadro. Parar aqui e mais barato que descobrir na montagem.
-    faltam = [p['id'] for p in S.get('personagens', []) if p['id'] not in E['urls']]
+    faltam = [p['id'] for p in elenco if p['id'] not in E['urls']]
     if faltam:
         return print(f'\n  ✗ âncora(s) sem imagem: {faltam}\n'
                      f'    Rode de novo — o que já ficou pronto é pulado.\n'
@@ -231,11 +261,23 @@ def main():
             png = f'{D}/img/{kid}.png'
             if kid in E['urls'] and os.path.exists(png):
                 continue
-            refs = [E['urls'][r] for r in pl.get('refs', []) if r in E['urls']][:2]
+            teto = 4 if a.img == 'inemaimg' else 2      # flux2-klein aceita 4 refs
+            refs = [E['urls'][r] for r in pl.get('refs', []) if r in E['urls']]
+            amb = pl.get('ambiente')
+            if amb and amb in E['urls']:
+                refs.append(E['urls'][amb])
+            refs = refs[:teto]
             prompt = G.prompt_de_imagem(pl, person, look, bool(refs))
             if lado == 'b':
-                # o B e o MESMO plano instantes depois — nao outra imagem da cena
-                prompt += (f" This is the same shot a few seconds later: "
+                # O B DERIVA DO A. Antes o B era gerado do zero com as mesmas ancoras,
+                # sem nunca ver o A — e tudo fora das ancoras era reinventado: o
+                # snowboard trocou de cor e angulo, a luva "abriu os dedos". Com o A
+                # como primeira referencia, o B e o MESMO quadro instantes depois.
+                anterior = E['urls'].get(f"p{pl['n']:02d}-a")
+                if anterior:
+                    refs = [anterior] + refs[:teto - 1]
+                prompt += (f" This is the exact same shot a few seconds later, same "
+                           f"scene, same objects in the same places: "
                            f"{G.dica_keyframe_b(pl)}.")
             u = gerar_img(png, prompt, refs or None, size)
             print(f'  [{kid}] {"ok" if u else "FALHOU"}')
@@ -249,61 +291,25 @@ def main():
         fc = M.folha_de_contato(D, planos, f'{D}/folha-contato.jpg')
         return print(f'\n>> folha de contato: {fc}')
 
-    # -------- 3. NARRACAO (define a duracao real de cada plano)
-    print('\n[3/5] NARRAÇÃO')
-    voz = S.get('voz', 'rachel')
-    E.setdefault('revisao', {})
-    for pl in planos:
-        txt = (pl.get('narracao') or '').strip()
-        n = pl['n']
-        if not txt:
-            continue
-        wav = f'{D}/narracao/p{n:02d}.wav'
-        if os.path.exists(wav) and str(n) in E['dur']:
-            continue
-        txt_rev, mud = revisar(txt)
-        if mud:
-            print(f'  [p{n:02d}] revisão:', '; '.join(f'"{x}"→"{y}"' for x, y in mud))
-            E['revisao'][str(n)] = [list(m) for m in mud]; salvar()
-        d = narrar(wav, txt_rev, voz=voz)
-        if d:
-            E['dur'][str(n)] = d; salvar()
-            print(f'  [p{n:02d}] {d:.1f}s')
-    for pl in planos:
-        # a fala manda: se a locucao passou da duracao planejada, o plano estica
-        falada = E['dur'].get(str(pl['n']))
-        if falada and falada + 0.4 > pl['dur']:
-            print(f"  [p{pl['n']:02d}] {pl['dur']}s → {falada + 0.4:.1f}s (a fala mandou)")
-            pl['dur'] = round(falada + 0.4, 1)
-
-    # -------- 3.5 AUDIO (trilha + SFX)
-    # Baixa aqui, nao na montagem: a montagem e so ffmpeg, e um efeito que nao baixa
-    # nao pode segurar o filme. Cada arquivo e cacheado em D/audio.
-    print('\n[3.5/5] TRILHA E SFX')
-    os.makedirs(f'{D}/audio', exist_ok=True)
-    trilha = (S.get('audio', {}) or {}).get('trilha') or ''
-    if trilha and not os.path.exists(trilha):
-        # texto que nao e caminho e CONSULTA: 'cinematic tension' vira busca
-        seg_total = sum(p['dur'] for p in planos)
-        alvo = f'{D}/audio/trilha.wav'
-        r = M.baixar_audio(trilha, alvo, tipo='musica', max_seg=max(60, seg_total * 2))
-        print(f'  [trilha] {"ok" if r else "FALHOU"} — {trilha}')
-        S.setdefault('audio', {})['trilha'] = r or ''
-    elif trilha:
-        print(f'  [trilha] arquivo local: {trilha}')
-    pedidos = {s['q']: s['arq'] for pl in planos for s in M._sfx_do_plano(D, pl)}
-    for q, arq in pedidos.items():
-        if os.path.exists(arq):
-            print(f'  [sfx] {q} (cache)'); continue
-        # MEDIDO: --max-duration 10 zera a busca ("nenhum resultado") — o acervo do
-        # Freesound tem foley gravado com cauda longa. Corta-se no ffmpeg depois,
-        # que e de graca; filtrar na busca joga fora o efeito certo.
-        print(f'  [sfx] {q} {"ok" if M.baixar_audio(q, arq, max_seg=45) else "FALHOU"}')
-
-    # -------- 4. CLIPES
-    print('\n[4/5] CLIPES')
+    # -------- 3. CLIPES (antes da narracao: consistencia e ritmo primeiro)
+    print('\n[3/5] CLIPES')
     lim = P.RATE_LIMIT_VID.get(a.video)
     feitos = 0
+    # PLANO DE ESTADO (tipo_plano: tableau) nao vai para gerador nenhum: a camera se
+    # move sobre a imagem parada. Cena sem movimento de sujeito nao tem o que animar, e
+    # pedir animacao e o que fez o snowboard trocar de cor entre A e B.
+    for pl in planos:
+        n = pl['n']
+        mp4 = f'{VD}/p{n:02d}.mp4'
+        ka = f'{D}/img/p{n:02d}-a.png'
+        if pl.get('tipo_plano') != 'tableau' or os.path.exists(mp4) or not os.path.exists(ka):
+            continue
+        fator = G.VELOCIDADE.get(pl.get('velocidade', 'normal'), 1.0)
+        r = M.clipe_de_imagem(ka, mp4, max(1.0, pl['dur'] * fator),
+                              pl.get('camera', 'zoom-in'), size)
+        print(f'  [p{n:02d}] tableau (câmera sobre a imagem) '
+              f'{"ok " + f"{P.dur(mp4):.1f}s · mov {M.movimento(mp4):.2f}" if r else "FALHOU"}')
+
     if a.video == 'agnes':
         # caminho em LOTE: submete tudo e colhe em paralelo (ver clipes_lote_agnes)
         itens = []
@@ -316,7 +322,7 @@ def main():
             fator = G.VELOCIDADE.get(pl.get('velocidade', 'normal'), 1.0)
             itens.append({'n': n, 'dest': mp4, 'fa': P.data_uri(ka),
                           'fb': P.data_uri(kb) if os.path.exists(kb) else P.data_uri(ka),
-                          'prompt': G.prompt_de_video(pl),
+                          'prompt': (G.prompt_de_video_minimo if a.prompt_minimo else G.prompt_de_video)(pl),
                           'seg': max(1.0, pl['dur'] * fator)})
         if itens:
             print(f'  {len(itens)} clipes em lote (5/min de teto na criação)')
@@ -378,6 +384,59 @@ def main():
         print(f'  [p{n:02d}] {"ok " + f"{P.dur(mp4):.1f}s · mov {mv:.2f}" if r else "FALHOU"}'
               + ('  ⚠️ ainda parado' if r and mv < LIMIAR_MOV else ''))
 
+    # -------- 3.5 AUDIO (trilha + SFX)
+    # Baixa aqui, nao na montagem: a montagem e so ffmpeg, e um efeito que nao baixa
+    # nao pode segurar o filme. Cada arquivo e cacheado em D/audio.
+    print('\n[3.5/5] TRILHA E SFX')
+    os.makedirs(f'{D}/audio', exist_ok=True)
+    trilha = (S.get('audio', {}) or {}).get('trilha') or ''
+    if trilha and not os.path.exists(trilha):
+        # texto que nao e caminho e CONSULTA: 'cinematic tension' vira busca
+        seg_total = sum(p['dur'] for p in planos)
+        alvo = f'{D}/audio/trilha.wav'
+        r = M.baixar_audio(trilha, alvo, tipo='musica', max_seg=max(60, seg_total * 2))
+        print(f'  [trilha] {"ok" if r else "FALHOU"} — {trilha}')
+        S.setdefault('audio', {})['trilha'] = r or ''
+    elif trilha:
+        print(f'  [trilha] arquivo local: {trilha}')
+    pedidos = {s['q']: s['arq'] for pl in planos for s in M._sfx_do_plano(D, pl)}
+    for q, arq in pedidos.items():
+        if os.path.exists(arq):
+            print(f'  [sfx] {q} (cache)'); continue
+        # MEDIDO: --max-duration 10 zera a busca ("nenhum resultado") — o acervo do
+        # Freesound tem foley gravado com cauda longa. Corta-se no ffmpeg depois,
+        # que e de graca; filtrar na busca joga fora o efeito certo.
+        print(f'  [sfx] {q} {"ok" if M.baixar_audio(q, arq, max_seg=45) else "FALHOU"}')
+
+    # -------- 4. NARRACAO (encaixada na linha do tempo, ja com os clipes prontos)
+    print('\n[4/5] NARRAÇÃO')
+    voz = S.get('voz', 'rachel')
+    E.setdefault('revisao', {})
+    for pl in planos:
+        txt = (pl.get('narracao') or '').strip()
+        n = pl['n']
+        if not txt:
+            continue
+        wav = f'{D}/narracao/p{n:02d}.wav'
+        if os.path.exists(wav) and str(n) in E['dur']:
+            continue
+        txt_rev, mud = revisar(txt)
+        if mud:
+            print(f'  [p{n:02d}] revisão:', '; '.join(f'"{x}"→"{y}"' for x, y in mud))
+            E['revisao'][str(n)] = [list(m) for m in mud]; salvar()
+        d = narrar(wav, txt_rev, voz=voz)
+        if d:
+            E['dur'][str(n)] = d; salvar()
+            print(f'  [p{n:02d}] {d:.1f}s')
+    # A fala NAO manda mais na duracao. O ritmo escrito na decupagem e o que vale; a
+    # locucao e encaixada na linha do tempo depois e pode atravessar planos. Medido: com
+    # a fala mandando, 106s planejados viravam 150s e o corte agil morria.
+    for pl in planos:
+        falada = E['dur'].get(str(pl['n']))
+        if falada and falada > pl['dur'] + 0.6:
+            print(f"  [p{pl['n']:02d}] fala de {falada:.1f}s num plano de {pl['dur']}s "
+                  f"— vai atravessar para o plano seguinte")
+
     # -------- 5. MONTAGEM
     print('\n[5/5] MONTAGEM')
     # plano sem clipe some do filme — e leva a fala junto. Melhor dizer do que
@@ -386,7 +445,7 @@ def main():
     if faltando:
         print(f'  ⚠️  {len(faltando)} plano(s) sem clipe e FORA do filme: {faltando}')
         print('      (rode de novo — as etapas prontas são puladas)')
-    final = M.montar(D, planos, S, f'filme-{nome}-{a.video}', vdir=VD)
+    final = M.montar(D, planos, S, f'filme-{nome}-{os.path.basename(VD)[6:]}', vdir=VD)
     print(f'\n>> {final}' if final else '\n>> nada montado')
 
 

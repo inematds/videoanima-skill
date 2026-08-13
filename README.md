@@ -12,6 +12,10 @@ com provedor de imagem e de vídeo escolhíveis por parâmetro.
 > planejado, os SFX entram sem audição prévia, e a referência encadeada entre planos
 > (plano N usando o N−1) não foi implementada.
 
+## 📖 Guia de uso
+
+Guia completo (landing + passo a passo): **https://inematds.github.io/videoanima-skill/guia/**
+
 ```bash
 python3 rodar.py exemplo --so-decupagem          # valida ritmo + custo, não gasta
 python3 rodar.py exemplo --img agnes --video agnes

@@ -1,13 +1,14 @@
 <!DOCTYPE html>
+
 <html lang="pt-BR">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
 <title>videoanima — história em filme vertical narrado</title>
-<meta name="description" content="Pipeline que transforma uma história em decupagem cinematográfica, keyframes, clipes e filme vertical narrado — com provedor de imagem e vídeo escolhível por parâmetro.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<meta content="Pipeline que transforma uma história em decupagem cinematográfica, keyframes, clipes e filme vertical narrado — com provedor de imagem e vídeo escolhível por parâmetro." name="description"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;800&amp;family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;600&amp;display=swap" rel="stylesheet"/>
 <style>
   :root{
     --bg:#0c0c10; --bg2:#14141b; --card:#16161e; --line:#272730;
@@ -93,198 +94,173 @@
   .aviso strong{color:var(--amb)}
   .aviso p{margin:.4em 0 0;color:var(--mut);font-size:.93rem}
 </style>
-</head>
-<body>
-
+<link href="https://inematds.github.io/videoanima-skill/guia/" hreflang="pt-BR" rel="alternate"/><link href="https://inematds.github.io/videoanima-skill/guia/en/" hreflang="en" rel="alternate"/><link href="https://inematds.github.io/videoanima-skill/guia/es/" hreflang="es" rel="alternate"/></head>
+<body><div class="inema-lang" style="position:fixed;right:14px;bottom:14px;z-index:9999;display:flex;gap:2px;padding:4px;border-radius:10px;background:rgba(12,12,16,.82);border:1px solid rgba(226,162,59,.45);font:600 12px/1 Sora,Inter,system-ui,sans-serif;backdrop-filter:blur(8px)" translate="no"><a href="./" hreflang="pt-BR" style="padding:6px 8px;border-radius:7px;text-decoration:none;color:#1a1206;background:#E2A23B">PT</a><a href="en/" hreflang="en" style="padding:6px 8px;border-radius:7px;text-decoration:none;color:#e9e9ee">EN</a><a href="es/" hreflang="es" style="padding:6px 8px;border-radius:7px;text-decoration:none;color:#e9e9ee">ES</a></div>
 <nav><div class="wrap">
-  <a class="brand" href="#top"><span class="emoji">🎬</span> videoanima</a>
-  <span class="sep">|</span>
-  <span class="clubpro">
-    <a class="inema" href="https://inema.club" target="_blank" rel="noopener">INEMA.CLUB</a>
-    <span class="sep">-</span>
-    <a class="pro" href="https://inema.pro" target="_blank" rel="noopener">PRO</a>
-  </span>
-  <div class="links">
-    <a class="sec" href="#oque">O que é</a>
-    <a class="sec" href="#fluxo">Como funciona</a>
-    <a class="sec" href="#guia">Guia de uso</a>
-    <a class="sec" href="#exemplos">Exemplos</a>
-    <a class="sec" href="#roadmap">Roadmap</a>
-    <button class="tgl" id="themeToggle" aria-label="Alternar tema" title="Alternar tema">🌙</button>
-    <a class="btn" href="https://github.com/inematds/videoanima-skill" target="_blank" rel="noopener">GitHub</a>
-  </div>
+<a class="brand" href="#top"><span class="emoji">🎬</span> videoanima</a>
+<span class="sep">|</span>
+<span class="clubpro">
+<a class="inema" href="https://inema.club" rel="noopener" target="_blank">INEMA.CLUB</a>
+<span class="sep">-</span>
+<a class="pro" href="https://inema.pro" rel="noopener" target="_blank">PRO</a>
+</span>
+<div class="links">
+<a class="sec" href="#oque">O que é</a>
+<a class="sec" href="#fluxo">Como funciona</a>
+<a class="sec" href="#guia">Guia de uso</a>
+<a class="sec" href="#exemplos">Exemplos</a>
+<a class="sec" href="#roadmap">Roadmap</a>
+<button aria-label="Alternar tema" class="tgl" id="themeToggle" title="Alternar tema">🌙</button>
+<a class="btn" href="https://github.com/inematds/videoanima-skill" rel="noopener" target="_blank">GitHub</a>
+</div>
 </div></nav>
-
 <header class="hero" id="top">
-  <div class="glow"></div>
-  <div class="wrap">
-    <div>
-      <span class="chip">História → decupagem → filme</span>
-      <h1>A história vira <span class="amb">decupagem</span>, e a decupagem vira filme.</h1>
-      <p class="lead">Pipeline vertical narrado, com provedor de imagem e de vídeo escolhível por parâmetro — e um contrato em YAML que você confere antes de gastar.</p>
-      <div class="cta">
-        <a class="btn" href="#guia">Começar o guia</a>
-        <a class="btn ghost" href="https://github.com/inematds/videoanima-skill" target="_blank" rel="noopener">Ver no GitHub</a>
-      </div>
-    </div>
-    <figure><img src="assets/hero.png" alt="Câmera de cinema sobre dolly, ilustração da capa do videoanima."></figure>
-  </div>
+<div class="glow"></div>
+<div class="wrap">
+<div>
+<span class="chip">História → decupagem → filme</span>
+<h1>A história vira <span class="amb">decupagem</span>, e a decupagem vira filme.</h1>
+<p class="lead">Pipeline vertical narrado, com provedor de imagem e de vídeo escolhível por parâmetro — e um contrato em YAML que você confere antes de gastar.</p>
+<div class="cta">
+<a class="btn" href="#guia">Começar o guia</a>
+<a class="btn ghost" href="https://github.com/inematds/videoanima-skill" rel="noopener" target="_blank">Ver no GitHub</a>
+</div>
+</div>
+<figure><img alt="Câmera de cinema sobre dolly, ilustração da capa do videoanima." src="assets/hero.png"/></figure>
+</div>
 </header>
-
 <section id="oque"><div class="wrap">
-  <span class="chip">O que é</span>
-  <h2>Um pipeline de direção, não um gerador de clipes soltos</h2>
-  <p class="sub">A diferença entre um filme e um slideshow está na decupagem: cada plano sabe o seu enquadramento, o seu movimento e onde o gesto termina. É isso que o videoanima escreve antes de gerar qualquer imagem.</p>
-  <div class="grid g3">
-    <div class="card"><h3>🎞️ Gramática de direção</h3><p>Enquadramento, ângulo, movimento, velocidade, look e ritmo viram fragmentos de prompt — vocabulário destilado de uma análise de estilo, não adjetivos improvisados.</p></div>
-    <div class="card"><h3>🔀 Provedores trocáveis</h3><p>Imagem em <code>agnes</code>, <code>inemaimg</code> ou <code>kie</code>; vídeo em <code>agnes</code>, <code>kling</code>, <code>klingai</code> ou <code>kie</code>. Cada armadilha medida mora no adaptador dela.</p></div>
-    <div class="card"><h3>🎯 Portão de movimento</h3><p>Cada clipe é medido depois de gerado; o que sai parado é refeito. Há negative prompt contra <code>still frame</code> e keyframes A/B para o gerador ter o que animar.</p></div>
-  </div>
-
-  <div class="aviso">
-    <strong>⚠️ Em ajuste — não é versão estável.</strong>
-    <p>O pipeline roda ponta a ponta, mas está em ciclo aberto de correção a partir dos filmes que ele mesmo produziu. O primeiro corte saiu ruim (cenas paradas, personagem inconsistente, narração picotada) — o que foi medido e o que mudou por causa disso está no post-mortem <code>doc/pos-mortem-montanha-leao.md</code>. Ainda em aberto: a narração estica os planos além do ritmo planejado, os SFX entram sem audição prévia, e a referência encadeada entre planos (plano N usando o N−1) não foi implementada.</p>
-  </div>
+<span class="chip">O que é</span>
+<h2>Um pipeline de direção, não um gerador de clipes soltos</h2>
+<p class="sub">A diferença entre um filme e um slideshow está na decupagem: cada plano sabe o seu enquadramento, o seu movimento e onde o gesto termina. É isso que o videoanima escreve antes de gerar qualquer imagem.</p>
+<div class="grid g3">
+<div class="card"><h3>🎞️ Gramática de direção</h3><p>Enquadramento, ângulo, movimento, velocidade, look e ritmo viram fragmentos de prompt — vocabulário destilado de uma análise de estilo, não adjetivos improvisados.</p></div>
+<div class="card"><h3>🔀 Provedores trocáveis</h3><p>Imagem em <code>agnes</code>, <code>inemaimg</code> ou <code>kie</code>; vídeo em <code>agnes</code>, <code>kling</code>, <code>klingai</code> ou <code>kie</code>. Cada armadilha medida mora no adaptador dela.</p></div>
+<div class="card"><h3>🎯 Portão de movimento</h3><p>Cada clipe é medido depois de gerado; o que sai parado é refeito. Há negative prompt contra <code>still frame</code> e keyframes A/B para o gerador ter o que animar.</p></div>
+</div>
+<div class="aviso">
+<strong>⚠️ Em ajuste — não é versão estável.</strong>
+<p>O pipeline roda ponta a ponta, mas está em ciclo aberto de correção a partir dos filmes que ele mesmo produziu. O primeiro corte saiu ruim (cenas paradas, personagem inconsistente, narração picotada) — o que foi medido e o que mudou por causa disso está no post-mortem <code>doc/pos-mortem-montanha-leao.md</code>. Ainda em aberto: a narração estica os planos além do ritmo planejado, os SFX entram sem audição prévia, e a referência encadeada entre planos (plano N usando o N−1) não foi implementada.</p>
+</div>
 </div></section>
-
 <section id="fluxo"><div class="wrap">
-  <span class="chip">Como funciona</span>
-  <h2>Seis etapas, idempotentes, cada uma pulando o que já existe em disco</h2>
-  <p class="sub">Tudo mora no output: um id solto resolve para <code>~/projetos/output/videoanima/&lt;id&gt;/decupagem.yaml</code>. O <code>historias/&lt;id&gt;/</code> do repo é só semente — na primeira execução a decupagem é copiada para o output, e a de lá passa a ser a viva.</p>
-  <div class="flow">
-    <span>Decupagem YAML</span><span class="arr">→</span>
-    <span>Sanidade de ritmo</span><span class="arr">→</span>
-    <span>Âncoras de personagem</span><span class="arr">→</span>
-    <span>Keyframes A e B</span><span class="arr">→</span>
-    <span>Clipes</span><span class="arr">→</span>
-    <span>Trilha e SFX</span><span class="arr">→</span>
-    <span>Narração</span><span class="arr">→</span>
-    <span>Montagem</span>
-  </div>
-
-  <div class="grid g3" style="margin-top:26px">
-    <div class="card"><span class="num">1</span><h3>Antes de gastar</h3><p>A sanidade de ritmo roda primeiro e o preview de custo aparece antes da primeira chamada paga. <code>--so-decupagem</code> valida sem gerar nada.</p></div>
-    <div class="card"><span class="num">2</span><h3>Consistência de personagem</h3><p>Uma âncora vai em text2img e as demais derivam dela por img2img — gerar em paralelo produziria indivíduos diferentes, porque nenhum desses geradores tem seed de identidade.</p></div>
-    <div class="card"><span class="num">3</span><h3>O que o gerador não faz</h3><p>Slow e speed-ramp, handheld, zoom-punch, trilha com ducking, SFX e loudnorm entram na montagem, em ffmpeg.</p></div>
-  </div>
+<span class="chip">Como funciona</span>
+<h2>Seis etapas, idempotentes, cada uma pulando o que já existe em disco</h2>
+<p class="sub">Tudo mora no output: um id solto resolve para <code>~/projetos/output/videoanima/&lt;id&gt;/decupagem.yaml</code>. O <code>historias/&lt;id&gt;/</code> do repo é só semente — na primeira execução a decupagem é copiada para o output, e a de lá passa a ser a viva.</p>
+<div class="flow">
+<span>Decupagem YAML</span><span class="arr">→</span>
+<span>Sanidade de ritmo</span><span class="arr">→</span>
+<span>Âncoras de personagem</span><span class="arr">→</span>
+<span>Keyframes A e B</span><span class="arr">→</span>
+<span>Clipes</span><span class="arr">→</span>
+<span>Trilha e SFX</span><span class="arr">→</span>
+<span>Narração</span><span class="arr">→</span>
+<span>Montagem</span>
+</div>
+<div class="grid g3" style="margin-top:26px">
+<div class="card"><span class="num">1</span><h3>Antes de gastar</h3><p>A sanidade de ritmo roda primeiro e o preview de custo aparece antes da primeira chamada paga. <code>--so-decupagem</code> valida sem gerar nada.</p></div>
+<div class="card"><span class="num">2</span><h3>Consistência de personagem</h3><p>Uma âncora vai em text2img e as demais derivam dela por img2img — gerar em paralelo produziria indivíduos diferentes, porque nenhum desses geradores tem seed de identidade.</p></div>
+<div class="card"><span class="num">3</span><h3>O que o gerador não faz</h3><p>Slow e speed-ramp, handheld, zoom-punch, trilha com ducking, SFX e loudnorm entram na montagem, em ffmpeg.</p></div>
+</div>
 </div></section>
-
 <section id="pre"><div class="wrap">
-  <span class="chip">Pré-requisitos</span>
-  <h2>O que precisa estar no ar</h2>
-  <p class="sub">Python 3 e ffmpeg são obrigatórios. Os serviços locais e as chaves dependem dos provedores que você escolher.</p>
-  <div class="grid g3">
-    <div class="card"><h3>ffmpeg + Python 3</h3><p>A montagem inteira é ffmpeg. Sem ele o filme não fecha.</p><pre><span class="c"># confira</span>
+<span class="chip">Pré-requisitos</span>
+<h2>O que precisa estar no ar</h2>
+<p class="sub">Python 3 e ffmpeg são obrigatórios. Os serviços locais e as chaves dependem dos provedores que você escolher.</p>
+<div class="grid g3">
+<div class="card"><h3>ffmpeg + Python 3</h3><p>A montagem inteira é ffmpeg. Sem ele o filme não fecha.</p><pre><span class="c"># confira</span>
 <span class="k">ffmpeg -version</span>
 <span class="k">python3 --version</span></pre></div>
-
-    <div class="card"><h3>inemavox (narração)</h3><p>TTS local em <code>localhost:8010</code>, engine chatterbox. A voz vem da decupagem (<code>voz:</code>).</p><pre><span class="c"># precisa responder</span>
+<div class="card"><h3>inemavox (narração)</h3><p>TTS local em <code>localhost:8010</code>, engine chatterbox. A voz vem da decupagem (<code>voz:</code>).</p><pre><span class="c"># precisa responder</span>
 <span class="k">curl</span> <span class="s">localhost:8010/health</span></pre></div>
-
-    <div class="card"><h3>inemaimg (opcional)</h3><p>Servidor de imagem local em <code>localhost:8000</code>. Necessário para <code>--img inemaimg</code> — o caminho para personagem criança, que cai no filtro da Agnes.</p><pre><span class="c"># só se for usar --img inemaimg</span>
+<div class="card"><h3>inemaimg (opcional)</h3><p>Servidor de imagem local em <code>localhost:8000</code>. Necessário para <code>--img inemaimg</code> — o caminho para personagem criança, que cai no filtro da Agnes.</p><pre><span class="c"># só se for usar --img inemaimg</span>
 <span class="k">curl</span> <span class="s">localhost:8000/health</span></pre></div>
-
-    <div class="card"><h3>Ollama (opcional)</h3><p>LLM local em <code>localhost:11434</code>, usado pela decupagem automática (<code>decupagem_llm.py</code>).</p><pre><span class="c"># só para decupagem via LLM</span>
+<div class="card"><h3>Ollama (opcional)</h3><p>LLM local em <code>localhost:11434</code>, usado pela decupagem automática (<code>decupagem_llm.py</code>).</p><pre><span class="c"># só para decupagem via LLM</span>
 <span class="k">curl</span> <span class="s">localhost:11434/api/tags</span></pre></div>
-
-    <div class="card"><h3>Chaves de provedor</h3><p>Lidas em runtime dos <code>.env</code> do ecossistema — nada é copiado para o repo.</p><pre><span class="c"># AGNES_API_KEY, KIE_API_KEY, FAL_KEY</span>
+<div class="card"><h3>Chaves de provedor</h3><p>Lidas em runtime dos <code>.env</code> do ecossistema — nada é copiado para o repo.</p><pre><span class="c"># AGNES_API_KEY, KIE_API_KEY, FAL_KEY</span>
 <span class="c"># em ~/projetos/openpcbotv2/.env</span>
 <span class="c"># ou ~/projetos/wifi/.env</span></pre></div>
-
-    <div class="card"><h3>Combinações que exigem URL pública</h3><p><code>klingai</code> e <code>kie</code> precisam do keyframe numa URL pública — combine com <code>--img agnes</code> ou <code>--img kie</code>.</p><pre><span class="c"># combinação válida</span>
+<div class="card"><h3>Combinações que exigem URL pública</h3><p><code>klingai</code> e <code>kie</code> precisam do keyframe numa URL pública — combine com <code>--img agnes</code> ou <code>--img kie</code>.</p><pre><span class="c"># combinação válida</span>
 <span class="k">--img kie --video klingai</span></pre></div>
-  </div>
+</div>
 </div></section>
-
 <section id="guia"><div class="wrap">
-  <span class="chip">Guia de uso · passo a passo</span>
-  <h2>Do exemplo ao filme montado</h2>
-  <p class="sub">Todos os comandos rodam da raiz do repo. A ordem importa: valide o ritmo e o custo antes de qualquer chamada paga.</p>
-
-  <div class="step"><div class="b">1</div><div>
-    <h3>Valide a decupagem sem gastar</h3>
-    <p>Roda a sanidade de ritmo e mostra o preview de custo. Não gera imagem, clipe nem áudio.</p>
+<span class="chip">Guia de uso · passo a passo</span>
+<h2>Do exemplo ao filme montado</h2>
+<p class="sub">Todos os comandos rodam da raiz do repo. A ordem importa: valide o ritmo e o custo antes de qualquer chamada paga.</p>
+<div class="step"><div class="b">1</div><div>
+<h3>Valide a decupagem sem gastar</h3>
+<p>Roda a sanidade de ritmo e mostra o preview de custo. Não gera imagem, clipe nem áudio.</p>
 <pre><span class="k">python3 rodar.py exemplo --so-decupagem</span>  <span class="c"># valida ritmo + custo, não gasta</span></pre>
-  </div></div>
-
-  <div class="step"><div class="b">2</div><div>
-    <h3>Edite a decupagem viva</h3>
-    <p>A primeira execução copia a semente do repo para o output. A partir daí, edite a do output — é ela que vale.</p>
+</div></div>
+<div class="step"><div class="b">2</div><div>
+<h3>Edite a decupagem viva</h3>
+<p>A primeira execução copia a semente do repo para o output. A partir daí, edite a do output — é ela que vale.</p>
 <pre><span class="c"># semente no repo (só a primeira vez)</span>
 historias/exemplo/
 
 <span class="c"># a viva, que você edita</span>
 <span class="k">~/projetos/output/videoanima/exemplo/decupagem.yaml</span></pre>
-  </div></div>
-
-  <div class="step"><div class="b">3</div><div>
-    <h3>Pare nos keyframes e confira a folha de contato</h3>
-    <p>Gera as âncoras de personagem e os keyframes A/B, monta a folha de contato e para. É onde se pega personagem inconsistente antes de pagar pelos clipes.</p>
+</div></div>
+<div class="step"><div class="b">3</div><div>
+<h3>Pare nos keyframes e confira a folha de contato</h3>
+<p>Gera as âncoras de personagem e os keyframes A/B, monta a folha de contato e para. É onde se pega personagem inconsistente antes de pagar pelos clipes.</p>
 <pre><span class="k">python3 rodar.py exemplo --so-imagens</span></pre>
-  </div></div>
-
-  <div class="step"><div class="b">4</div><div>
-    <h3>Rode o pipeline completo</h3>
-    <p>Escolha os provedores de imagem e vídeo. O padrão de ambos é <code>agnes</code> (custo US$ 0, submissão em lote).</p>
+</div></div>
+<div class="step"><div class="b">4</div><div>
+<h3>Rode o pipeline completo</h3>
+<p>Escolha os provedores de imagem e vídeo. O padrão de ambos é <code>agnes</code> (custo US$ 0, submissão em lote).</p>
 <pre><span class="k">python3 rodar.py exemplo --img agnes --video agnes</span>
 
 <span class="c"># Kling via fal.ai, com keyframe em URL pública</span>
 <span class="k">python3 rodar.py exemplo --img kie --video klingai</span></pre>
-  </div></div>
-
-  <div class="step"><div class="b">5</div><div>
-    <h3>Personagem criança? Troque o provedor de imagem</h3>
-    <p>Medido em 2026-08-01: a Agnes devolve HTTP 400 de forma determinística para "boy"/"child" — o mesmo prompt com adulto passa.</p>
+</div></div>
+<div class="step"><div class="b">5</div><div>
+<h3>Personagem criança? Troque o provedor de imagem</h3>
+<p>Medido em 2026-08-01: a Agnes devolve HTTP 400 de forma determinística para "boy"/"child" — o mesmo prompt com adulto passa.</p>
 <pre><span class="k">python3 rodar.py minha-historia --img inemaimg --video agnes</span></pre>
-  </div></div>
-
-  <div class="step"><div class="b">6</div><div>
-    <h3>Sem confirmação e com prompt mínimo</h3>
-    <p><code>--sim</code> não pergunta antes de gastar. <code>--prompt-minimo</code> manda só a ordem de movimento ao gerador de vídeo — útil quando o prompt longo está atrapalhando a animação.</p>
+</div></div>
+<div class="step"><div class="b">6</div><div>
+<h3>Sem confirmação e com prompt mínimo</h3>
+<p><code>--sim</code> não pergunta antes de gastar. <code>--prompt-minimo</code> manda só a ordem de movimento ao gerador de vídeo — útil quando o prompt longo está atrapalhando a animação.</p>
 <pre><span class="k">python3 rodar.py exemplo --sim --prompt-minimo</span></pre>
-  </div></div>
-
-  <div class="step"><div class="b">7</div><div>
-    <h3>Retome de onde parou</h3>
-    <p>Cada etapa pula o que já existe em disco. Apague o artefato que quiser refazer e rode de novo — só ele é regerado.</p>
+</div></div>
+<div class="step"><div class="b">7</div><div>
+<h3>Retome de onde parou</h3>
+<p>Cada etapa pula o que já existe em disco. Apague o artefato que quiser refazer e rode de novo — só ele é regerado.</p>
 <pre><span class="c"># refaz só o clipe do plano 07</span>
 <span class="k">rm</span> <span class="s">~/projetos/output/videoanima/exemplo/clipes/p07*.mp4</span>
 <span class="k">python3 rodar.py exemplo</span></pre>
-  </div></div>
+</div></div>
 </div></section>
-
 <section id="exemplos"><div class="wrap">
-  <span class="chip">Exemplos</span>
-  <h2>Filmes que saíram do pipeline</h2>
-  <p class="sub">Quadros dos filmes verticais produzidos durante o ciclo de correção — os mesmos que alimentaram o post-mortem.</p>
-  <div class="ex">
-    <figure><img src="assets/ex1.jpg" alt="Quadro do filme montanha-leao-v2: menino de mochila e cachorro no alto de uma montanha ao entardecer."><figcaption><strong>montanha-leao-v2</strong> — a versão refeita depois do post-mortem, com look por bloco para a luz não sair de meio-dia na chegada noturna.</figcaption></figure>
-    <figure><img src="assets/ex2.jpg" alt="Quadro do filme neve-resgate: menino de casaco vermelho avançando na neve entre lampiões acesos."><figcaption><strong>neve-resgate</strong> — v3, com <code>tipo_plano</code> e a bíblia de ambientes; o plano de estado não vai a gerador nenhum.</figcaption></figure>
-  </div>
+<span class="chip">Exemplos</span>
+<h2>Filmes que saíram do pipeline</h2>
+<p class="sub">Quadros dos filmes verticais produzidos durante o ciclo de correção — os mesmos que alimentaram o post-mortem.</p>
+<div class="ex">
+<figure><img alt="Quadro do filme montanha-leao-v2: menino de mochila e cachorro no alto de uma montanha ao entardecer." src="assets/ex1.jpg"/><figcaption><strong>montanha-leao-v2</strong> — a versão refeita depois do post-mortem, com look por bloco para a luz não sair de meio-dia na chegada noturna.</figcaption></figure>
+<figure><img alt="Quadro do filme neve-resgate: menino de casaco vermelho avançando na neve entre lampiões acesos." src="assets/ex2.jpg"/><figcaption><strong>neve-resgate</strong> — v3, com <code>tipo_plano</code> e a bíblia de ambientes; o plano de estado não vai a gerador nenhum.</figcaption></figure>
+</div>
 </div></section>
-
 <section id="roadmap"><div class="wrap">
-  <span class="chip">Roadmap</span>
-  <h2>O que já mudou e o que ainda está aberto</h2>
-  <p class="sub">O roadmap é dirigido pelos defeitos medidos nos próprios filmes — cada item nasceu de um corte que saiu errado.</p>
-
-  <div class="phase"><div class="tag">Feito</div><div class="d"><strong>Movimento medido, não prometido</strong><span>Keyframes A e B por plano, negative prompt contra <code>still frame</code> e um portão que mede o movimento do clipe e refaz o que sair parado.</span></div></div>
-  <div class="phase"><div class="tag">Feito</div><div class="d"><strong>v3: tipo de plano e look por bloco</strong><span><code>tipo_plano: tableau</code> não vai a gerador de vídeo — a câmera se move sobre a imagem parada. <code>blocos</code> pinta a faixa de planos com o look certo, em vez de os 50 planos herdarem um "daylight" global.</span></div></div>
-  <div class="phase"><div class="tag">Feito</div><div class="d"><strong>Áudio em camadas separadas</strong><span>Voz e leito deixaram de disputar a mesma trilha — o filme parou de sair mudo.</span></div></div>
-  <div class="phase"><div class="tag">Aberto</div><div class="d"><strong>Narração x ritmo</strong><span>A narração ainda estica os planos além do ritmo planejado na decupagem.</span></div></div>
-  <div class="phase"><div class="tag">Aberto</div><div class="d"><strong>SFX sem audição prévia</strong><span>Os efeitos entram no filme sem passar por uma escuta de conferência.</span></div></div>
-  <div class="phase"><div class="tag">Aberto</div><div class="d"><strong>Referência encadeada</strong><span>O plano N usando o N−1 como referência ainda não foi implementado — é o caminho para a continuidade entre planos.</span></div></div>
+<span class="chip">Roadmap</span>
+<h2>O que já mudou e o que ainda está aberto</h2>
+<p class="sub">O roadmap é dirigido pelos defeitos medidos nos próprios filmes — cada item nasceu de um corte que saiu errado.</p>
+<div class="phase"><div class="tag">Feito</div><div class="d"><strong>Movimento medido, não prometido</strong><span>Keyframes A e B por plano, negative prompt contra <code>still frame</code> e um portão que mede o movimento do clipe e refaz o que sair parado.</span></div></div>
+<div class="phase"><div class="tag">Feito</div><div class="d"><strong>v3: tipo de plano e look por bloco</strong><span><code>tipo_plano: tableau</code> não vai a gerador de vídeo — a câmera se move sobre a imagem parada. <code>blocos</code> pinta a faixa de planos com o look certo, em vez de os 50 planos herdarem um "daylight" global.</span></div></div>
+<div class="phase"><div class="tag">Feito</div><div class="d"><strong>Áudio em camadas separadas</strong><span>Voz e leito deixaram de disputar a mesma trilha — o filme parou de sair mudo.</span></div></div>
+<div class="phase"><div class="tag">Aberto</div><div class="d"><strong>Narração x ritmo</strong><span>A narração ainda estica os planos além do ritmo planejado na decupagem.</span></div></div>
+<div class="phase"><div class="tag">Aberto</div><div class="d"><strong>SFX sem audição prévia</strong><span>Os efeitos entram no filme sem passar por uma escuta de conferência.</span></div></div>
+<div class="phase"><div class="tag">Aberto</div><div class="d"><strong>Referência encadeada</strong><span>O plano N usando o N−1 como referência ainda não foi implementado — é o caminho para a continuidade entre planos.</span></div></div>
 </div></section>
-
 <footer>
-  <div class="wrap">
-    <div class="pill">Python 3</div><div class="pill">ffmpeg</div><div class="pill">YAML</div><div class="pill">inemavox</div><div class="pill">Agnes · Kling · KIE</div>
-    <p style="margin-top:18px">videoanima · pipeline de história para filme vertical narrado ·
+<div class="wrap">
+<div class="pill">Python 3</div><div class="pill">ffmpeg</div><div class="pill">YAML</div><div class="pill">inemavox</div><div class="pill">Agnes · Kling · KIE</div>
+<p style="margin-top:18px">videoanima · pipeline de história para filme vertical narrado ·
       <a href="https://github.com/inematds/videoanima-skill">inematds/videoanima-skill</a> ·
       <a href="https://inema.club">INEMA.CLUB</a></p>
-  </div>
+</div>
 </footer>
-
 <script>
   (function(){
     var KEY='videoanima-theme';

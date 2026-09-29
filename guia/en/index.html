@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>videoanima — story as a narrated vertical film</title>
+<meta content="A pipeline that turns a story into a cinematic shot breakdown, keyframes, clips, and a narrated vertical film — with image and video providers selectable by parameter." name="description"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;800&amp;family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;600&amp;display=swap" rel="stylesheet"/>
+<style>
+  :root{
+    --bg:#0c0c10; --bg2:#14141b; --card:#16161e; --line:#272730;
+    --txt:#e9e9ee; --mut:#9a9aa6; --amb:#E2A23B; --amb2:#f0c070; --sky:#38bdf8; --pro:#cbd5e1;
+    color-scheme:dark;
+  }
+  body.light{
+    --bg:#f6f7f9; --bg2:#eceef2; --card:#ffffff; --line:#e1e3ea;
+    --txt:#1a1a22; --mut:#5b5b68; --amb:#b9791d; --amb2:#a16207; --sky:#0369a1; --pro:#b45309;
+    color-scheme:light;
+  }
+  body.light .hero .glow{opacity:.5}
+  body.light pre{background:#0e0e14;color:#d6d6e0}
+  body.light pre .c{color:#8a8a98}
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--txt);font:16px/1.65 Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+  h1,h2,h3{font-family:Sora,sans-serif;line-height:1.15;margin:0}
+  a{color:var(--amb);text-decoration:none}
+  code,pre{font-family:"JetBrains Mono",monospace}
+  .wrap{max-width:1160px;margin:0 auto;padding:0 22px}
+  .mut{color:var(--mut)} .amb{color:var(--amb)}
+  .chip{display:inline-block;font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--amb);font-weight:600;font-family:Sora}
+  nav{position:sticky;top:0;z-index:30;backdrop-filter:blur(12px);background:rgba(12,12,16,.78);border-bottom:1px solid var(--line)}
+  nav .wrap{display:flex;align-items:center;gap:22px;height:60px}
+  nav .brand{display:flex;align-items:center;gap:8px;font-family:Sora;font-weight:800;letter-spacing:-.02em;color:var(--amb)}
+  nav .brand .emoji{font-size:1.25rem}
+  nav .sep{color:var(--mut);opacity:.45}
+  nav .inema{color:var(--sky);font-weight:600;font-size:.88rem;font-family:Sora}
+  nav .inema:hover{filter:brightness(1.15)}
+  nav .pro{color:var(--pro);font-weight:600;font-size:.88rem;font-family:Sora}
+  nav .pro:hover{filter:brightness(1.15)}
+  nav .clubpro{display:inline-flex;align-items:center;gap:6px}
+  nav .links{margin-left:auto;display:flex;align-items:center;gap:20px;font-size:.92rem}
+  nav .links a.sec{color:var(--mut)} nav .links a.sec:hover{color:var(--txt)}
+  .tgl{background:var(--bg2);border:1px solid var(--line);color:var(--txt);width:38px;height:38px;border-radius:10px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:1.05rem}
+  .tgl:hover{border-color:var(--amb)}
+  .btn{display:inline-block;background:var(--amb);color:#1a1206;font-weight:600;padding:.6em 1.05em;border-radius:10px;font-family:Sora}
+  .btn.ghost{background:transparent;color:var(--txt);border:1px solid var(--line)}
+  @media(max-width:760px){nav .links a.sec{display:none}}
+  .hero{position:relative;overflow:hidden;border-bottom:1px solid var(--line)}
+  .hero .glow{position:absolute;inset:-40% -20% auto auto;width:70%;height:600px;background:radial-gradient(closest-side,rgba(226,162,59,.22),transparent 70%);pointer-events:none}
+  .hero .wrap{display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:center;padding:74px 22px}
+  .hero h1{font-size:clamp(2.2rem,5vw,3.5rem);font-weight:800;letter-spacing:-.025em}
+  .hero p.lead{font-size:1.18rem;color:var(--mut);margin:1.1em 0 1.6em;max-width:34ch}
+  .hero .cta{display:flex;gap:12px;flex-wrap:wrap}
+  .hero figure{margin:0;border-radius:16px;overflow:hidden;border:1px solid var(--line);box-shadow:0 30px 80px -30px #000}
+  .hero figure img{width:100%;display:block}
+  @media(max-width:780px){.hero .wrap{grid-template-columns:1fr;padding:48px 22px}}
+  section{padding:62px 0;border-bottom:1px solid var(--line)}
+  section h2{font-size:clamp(1.5rem,3.4vw,2.1rem);font-weight:800;letter-spacing:-.02em}
+  section .sub{color:var(--mut);margin:.6em 0 2em;max-width:62ch}
+  .grid{display:grid;gap:16px}
+  .g3{grid-template-columns:repeat(3,1fr)} .g4{grid-template-columns:repeat(4,1fr)} .g2{grid-template-columns:repeat(2,1fr)}
+  @media(max-width:820px){.g3,.g4{grid-template-columns:1fr 1fr}}
+  @media(max-width:540px){.g2,.g3,.g4{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px}
+  .card h3{font-size:1.05rem;margin-bottom:.4em}
+  .card p{color:var(--mut);font-size:.92rem;margin:0}
+  .num{display:inline-flex;width:30px;height:30px;align-items:center;justify-content:center;border-radius:8px;background:rgba(226,162,59,.14);color:var(--amb);font-family:Sora;font-weight:800;font-size:.9rem;margin-bottom:.7em}
+  .flow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px}
+  .flow span{background:var(--bg2);border:1px solid var(--line);border-radius:999px;padding:.45em .9em;font-size:.85rem;font-family:Sora;font-weight:600}
+  .flow .arr{color:var(--amb);border:none;background:none;padding:0 .1em}
+  pre{background:#0a0a0e;border:1px solid var(--line);border-radius:12px;padding:16px 18px;overflow:auto;font-size:.86rem;line-height:1.6;color:#d6d6e0}
+  pre .c{color:#6f6f7c} pre .k{color:var(--amb2)} pre .s{color:#9ece6a}
+  .step{display:grid;grid-template-columns:46px 1fr;gap:16px;margin-bottom:26px}
+  .step .b{width:46px;height:46px;border-radius:12px;background:var(--amb);color:#1a1206;font-family:Sora;font-weight:800;font-size:1.25rem;display:flex;align-items:center;justify-content:center}
+  .step h3{font-size:1.12rem;margin-bottom:.3em}
+  .step p{color:var(--mut);margin:.2em 0 .7em}
+  .ex{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  @media(max-width:680px){.ex{grid-template-columns:1fr}}
+  .ex figure{margin:0;border-radius:14px;overflow:hidden;border:1px solid var(--line)}
+  .ex figure img{width:100%;display:block}
+  .ex figcaption{padding:12px 14px;font-size:.88rem;color:var(--mut);background:var(--card)}
+  .phase{display:flex;gap:14px;padding:16px 0;border-bottom:1px solid var(--line)}
+  .phase:last-child{border:none}
+  .phase .tag{flex:0 0 92px;font-family:Sora;font-weight:800;color:var(--amb)}
+  .phase .d strong{display:block;margin-bottom:.2em}
+  .phase .d span{color:var(--mut);font-size:.92rem}
+  footer{padding:46px 0;text-align:center;color:var(--mut);font-size:.9rem}
+  .pill{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:.3em .8em;font-size:.78rem;color:var(--mut);margin:0 4px}
+  .aviso{background:rgba(226,162,59,.10);border:1px solid var(--amb);border-radius:12px;padding:16px 18px;margin-top:22px}
+  .aviso strong{color:var(--amb)}
+  .aviso p{margin:.4em 0 0;color:var(--mut);font-size:.93rem}
+</style>
+<link href="https://inematds.github.io/videoanima-skill/guia/" hreflang="pt-BR" rel="alternate"/><link href="https://inematds.github.io/videoanima-skill/guia/en/" hreflang="en" rel="alternate"/><link href="https://inematds.github.io/videoanima-skill/guia/es/" hreflang="es" rel="alternate"/></head>
+<body><div class="inema-lang" style="position:fixed;right:14px;bottom:14px;z-index:9999;display:flex;gap:2px;padding:4px;border-radius:10px;background:rgba(12,12,16,.82);border:1px solid rgba(226,162,59,.45);font:600 12px/1 Sora,Inter,system-ui,sans-serif;backdrop-filter:blur(8px)" translate="no"><a href="../" hreflang="pt-BR" style="padding:6px 8px;border-radius:7px;text-decoration:none;color:#e9e9ee">PT</a><a href="./" hreflang="en" style="padding:6px 8px;border-radius:7px;text-decoration:none;color:#1a1206;background:#E2A23B">EN</a><a href="../es/" hreflang="es" style="padding:6px 8px;border-radius:7px;text-decoration:none;color:#e9e9ee">ES</a></div>
+<nav><div class="wrap">
+<a class="brand" href="#top"><span class="emoji">🎬</span> videoanima</a>
+<span class="sep">|</span>
+<span class="clubpro">
+<a class="inema" href="https://inema.club" rel="noopener" target="_blank">INEMA.CLUB</a>
+<span class="sep">-</span>
+<a class="pro" href="https://inema.pro" rel="noopener" target="_blank">PRO</a>
+</span>
+<div class="links">
+<a class="sec" href="#oque">What it is</a>
+<a class="sec" href="#fluxo">How it works</a>
+<a class="sec" href="#guia">User Guide</a>
+<a class="sec" href="#exemplos">Examples</a>
+<a class="sec" href="#roadmap">Roadmap</a>
+<button aria-label="Toggle theme" class="tgl" id="themeToggle" title="Toggle theme">🌙</button>
+<a class="btn" href="https://github.com/inematds/videoanima-skill" rel="noopener" target="_blank">GitHub</a>
+</div>
+</div></nav>
+<header class="hero" id="top">
+<div class="glow"></div>
+<div class="wrap">
+<div>
+<span class="chip">Story → shot breakdown → film</span>
+<h1>The story becomes <span class="amb">shot breakdown</span>, and the shot breakdown becomes a film.</h1>
+<p class="lead">Narrated vertical pipeline, with image and video providers selectable by parameter — and a YAML contract you can review before spending anything.</p>
+<div class="cta">
+<a class="btn" href="#guia">Start the guide</a>
+<a class="btn ghost" href="https://github.com/inematds/videoanima-skill" rel="noopener" target="_blank">View on GitHub</a>
+</div>
+</div>
+<figure><img alt="Cinema camera on a dolly, videoanima cover illustration." src="../assets/hero.png"/></figure>
+</div>
+</header>
+<section id="oque"><div class="wrap">
+<span class="chip">What it is</span>
+<h2>A directing pipeline, not a generator of standalone clips</h2>
+<p class="sub">The difference between a film and a slideshow is in the shot breakdown: each shot knows its framing, movement, and where the gesture ends. That's what videoanima writes before generating any images.</p>
+<div class="grid g3">
+<div class="card"><h3>🎞️ Directing grammar</h3><p>Framing, angle, movement, speed, look, and pacing become prompt fragments — vocabulary distilled from a style analysis, not improvised adjectives.</p></div>
+<div class="card"><h3>🔀 Swappable providers</h3><p>Image in <code>agnes</code>, <code>inemaimg</code> or <code>kie</code>; video at <code>agnes</code>, <code>kling</code>, <code>klingai</code> or <code>kie</code>. Each measured pitfall lives in its adapter.</p></div>
+<div class="card"><h3>🎯 Motion gate</h3><p>Each clip is measured after generation; anything that comes out still is redone. There's a negative prompt against <code>still frame</code> and A/B keyframes so the generator has something to animate.</p></div>
+</div>
+<div class="aviso">
+<strong>⚠️ Under adjustment — not a stable version.</strong>
+<p>The pipeline runs end to end, but it is in an open correction cycle based on the films it produced. The first cut came out poorly (static scenes, inconsistent character, choppy narration) — what was measured and what changed as a result is in the post-mortem <code>doc/pos-mortem-montanha-leao.md</code>. Still open: the narration stretches shots beyond the planned pacing, SFX are added without prior listening, and linked references between shots (shot N using N−1) haven't been implemented.</p>
+</div>
+</div></section>
+<section id="fluxo"><div class="wrap">
+<span class="chip">How it works</span>
+<h2>Six steps, idempotent, each skipping what already exists on disk</h2>
+<p class="sub">Everything lives in output: a standalone ID resolves to <code>~/projetos/output/videoanima/&lt;id&gt;/decupagem.yaml</code>. O <code>historias/&lt;id&gt;/</code> from the repo is just a seed — on the first run, the shot breakdown is copied to the output, and the copy there becomes the active one.</p>
+<div class="flow">
+<span>YAML shot breakdown</span><span class="arr">→</span>
+<span>Pacing check</span><span class="arr">→</span>
+<span>Character anchors</span><span class="arr">→</span>
+<span>Keyframes A and B</span><span class="arr">→</span>
+<span>Clips</span><span class="arr">→</span>
+<span>Soundtrack and SFX</span><span class="arr">→</span>
+<span>Narration</span><span class="arr">→</span>
+<span>Editing</span>
+</div>
+<div class="grid g3" style="margin-top:26px">
+<div class="card"><span class="num">1</span><h3>Before spending</h3><p>The pacing check runs first, and the cost preview appears before the first paid API call. <code>--so-decupagem</code> validates without generating anything.</p></div>
+<div class="card"><span class="num">2</span><h3>Character consistency</h3><p>One anchor goes through text2img, and the others derive from it through img2img — generating in parallel would produce different individuals because none of these generators has an identity seed.</p></div>
+<div class="card"><span class="num">3</span><h3>What the generator doesn’t do</h3><p>Slow motion and speed ramps, handheld, zoom punches, a ducked soundtrack, SFX, and loudnorm are added during editing with ffmpeg.</p></div>
+</div>
+</div></section>
+<section id="pre"><div class="wrap">
+<span class="chip">Prerequisites</span>
+<h2>What needs to be running</h2>
+<p class="sub">Python 3 and ffmpeg are required. Local services and keys depend on the providers you choose.</p>
+<div class="grid g3">
+<div class="card"><h3>ffmpeg + Python 3</h3><p>The entire edit is done with ffmpeg. Without it, the film can't be completed.</p><pre><span class="c"># check</span>
+<span class="k">ffmpeg -version</span>
+<span class="k">python3 --version</span></pre></div>
+<div class="card"><h3>inemavox (narration)</h3><p>Local TTS in <code>localhost:8010</code>, chatterbox engine. The voice comes from the shot breakdown (<code>voz:</code>).</p><pre><span class="c"># needs to respond</span>
+<span class="k">curl</span> <span class="s">localhost:8010/health</span></pre></div>
+<div class="card"><h3>inemaimg (optional)</h3><p>Local image server in <code>localhost:8000</code>. Required for <code>--img inemaimg</code> — the path for a child character, which gets caught by the Agnes filter.</p><pre><span class="c"># only if using --img inemaimg</span>
+<span class="k">curl</span> <span class="s">localhost:8000/health</span></pre></div>
+<div class="card"><h3>Ollama (optional)</h3><p>Local LLM in <code>localhost:11434</code>, used by the automatic shot breakdown (<code>decupagem_llm.py</code>).</p><pre><span class="c"># only for LLM-based shot breakdown</span>
+<span class="k">curl</span> <span class="s">localhost:11434/api/tags</span></pre></div>
+<div class="card"><h3>Provider keys</h3><p>Read at runtime from <code>.env</code> from the ecosystem — nothing is copied into the repo.</p><pre><span class="c"># AGNES_API_KEY, KIE_API_KEY, FAL_KEY</span>
+<span class="c"># in ~/projetos/openpcbotv2/.env</span>
+<span class="c"># or ~/projetos/wifi/.env</span></pre></div>
+<div class="card"><h3>Combinations that require a public URL</h3><p><code>klingai</code> e <code>kie</code> need the keyframe at a public URL — pair it with <code>--img agnes</code> or <code>--img kie</code>.</p><pre><span class="c"># valid combination</span>
+<span class="k">--img kie --video klingai</span></pre></div>
+</div>
+</div></section>
+<section id="guia"><div class="wrap">
+<span class="chip">User Guide · step by step</span>
+<h2>From example to assembled film</h2>
+<p class="sub">Run all commands from the repo root. The order matters: validate pacing and cost before making any paid calls.</p>
+<div class="step"><div class="b">1</div><div>
+<h3>Validate the shot breakdown without spending anything</h3>
+<p>Checks pacing and shows the cost preview. Does not generate images, clips, or audio.</p>
+<pre><span class="k">python3 rodar.py exemplo --so-decupagem</span>  <span class="c"># validates pacing + cost, doesn't spend anything</span></pre>
+</div></div>
+<div class="step"><div class="b">2</div><div>
+<h3>Edit the live shot breakdown</h3>
+<p>The first run copies the seed from the repo to the output. From then on, edit the one in the output — that's the one that counts.</p>
+<pre><span class="c"># seed in the repo (first time only)</span>
+historias/exemplo/
+
+<span class="c"># the live one, which you edit</span>
+<span class="k">~/projetos/output/videoanima/exemplo/decupagem.yaml</span></pre>
+</div></div>
+<div class="step"><div class="b">3</div><div>
+<h3>Stop at the keyframes and review the contact sheet</h3>
+<p>Generates the character anchors and A/B keyframes, assembles the contact sheet, and stops. This is where you catch inconsistent characters before paying for the clips.</p>
+<pre><span class="k">python3 rodar.py exemplo --so-imagens</span></pre>
+</div></div>
+<div class="step"><div class="b">4</div><div>
+<h3>Run the full pipeline</h3>
+<p>Choose the image and video providers. The default for both is <code>agnes</code> (US$ 0 cost, batch submission).</p>
+<pre><span class="k">python3 rodar.py exemplo --img agnes --video agnes</span>
+
+<span class="c"># Kling via fal.ai, with a keyframe at a public URL</span>
+<span class="k">python3 rodar.py exemplo --img kie --video klingai</span></pre>
+</div></div>
+<div class="step"><div class="b">5</div><div>
+<h3>Child character? Switch image providers</h3>
+<p>Measured on 2026-08-01: Agnes consistently returns HTTP 400 for "boy"/"child" — the same prompt works with an adult.</p>
+<pre><span class="k">python3 rodar.py minha-historia --img inemaimg --video agnes</span></pre>
+</div></div>
+<div class="step"><div class="b">6</div><div>
+<h3>Without confirmation and with a minimal prompt</h3>
+<p><code>--sim</code> doesn't ask before spending. <code>--prompt-minimo</code> sends only the motion instructions to the video generator — useful when the long prompt is getting in the way of the animation.</p>
+<pre><span class="k">python3 rodar.py exemplo --sim --prompt-minimo</span></pre>
+</div></div>
+<div class="step"><div class="b">7</div><div>
+<h3>Resume where you left off</h3>
+<p>Each step skips anything already on disk. Delete the artifact you want to redo and run it again — only that artifact is regenerated.</p>
+<pre><span class="c"># redo only the clip for shot 07</span>
+<span class="k">rm</span> <span class="s">~/projetos/output/videoanima/exemplo/clipes/p07*.mp4</span>
+<span class="k">python3 rodar.py exemplo</span></pre>
+</div></div>
+</div></section>
+<section id="exemplos"><div class="wrap">
+<span class="chip">Examples</span>
+<h2>Films produced by the pipeline</h2>
+<p class="sub">Frames from the vertical films produced during the correction cycle — the same ones that informed the post-mortem.</p>
+<div class="ex">
+<figure><img alt="Frame from the montanha-leao-v2 film: boy with a backpack and a dog atop a mountain at dusk." src="../assets/ex1.jpg"/><figcaption><strong>montanha-leao-v2</strong> — the version reworked after the postmortem, with a look per block so the lighting doesn’t come out as midday when the scene arrives at night.</figcaption></figure>
+<figure><img alt="Frame from the neve-resgate film: boy in a red coat walking through the snow between lit lanterns." src="../assets/ex2.jpg"/><figcaption><strong>neve-resgate</strong> — v3, with <code>tipo_plano</code> and the environment bible; the state plan is not sent to any generator.</figcaption></figure>
+</div>
+</div></section>
+<section id="roadmap"><div class="wrap">
+<span class="chip">Roadmap</span>
+<h2>What has changed and what is still open</h2>
+<p class="sub">The roadmap is driven by defects measured in the films themselves — each item came from a cut that went wrong.</p>
+<div class="phase"><div class="tag">Done</div><div class="d"><strong>Measured motion, not promised</strong><span>Keyframes A and B per shot, negative prompt against <code>still frame</code> and a gate that measures the clip’s motion and redoes anything that comes out static.</span></div></div>
+<div class="phase"><div class="tag">Done</div><div class="d"><strong>v3: shot type and look per block</strong><span><code>tipo_plano: tableau</code> is not sent to a video generator — the camera moves over the still image. <code>blocos</code> applies the right look to the shot range, instead of all 50 shots inheriting a global "daylight" setting.</span></div></div>
+<div class="phase"><div class="tag">Done</div><div class="d"><strong>Separate audio layers</strong><span>Voice and bed audio stopped competing for the same track — the film stopped coming out silent.</span></div></div>
+<div class="phase"><div class="tag">Open</div><div class="d"><strong>Narration vs. pacing</strong><span>The narration still stretches shots beyond the pacing planned in the shot breakdown.</span></div></div>
+<div class="phase"><div class="tag">Open</div><div class="d"><strong>SFX without prior listening</strong><span>The effects are added to the film without being listened to for review.</span></div></div>
+<div class="phase"><div class="tag">Open</div><div class="d"><strong>Chained reference</strong><span>Plan N using N−1 as a reference has not yet been implemented — this is the path to continuity between shots.</span></div></div>
+</div></section>
+<footer>
+<div class="wrap">
+<div class="pill">Python 3</div><div class="pill">ffmpeg</div><div class="pill">YAML</div><div class="pill">inemavox</div><div class="pill">Agnes · Kling · KIE</div>
+<p style="margin-top:18px">videoanima · story-to-narrated-vertical-film pipeline ·
+      <a href="https://github.com/inematds/videoanima-skill">inematds/videoanima-skill</a> ·
+      <a href="https://inema.club">INEMA.CLUB</a></p>
+</div>
+</footer>
+<script>
+  (function(){
+    var KEY='videoanima-theme';
+    var b=document.body, t=document.getElementById('themeToggle');
+    if(localStorage.getItem(KEY)==='light'){ b.classList.add('light'); t.textContent='☀️'; }
+    t.addEventListener('click',function(){
+      var light=b.classList.toggle('light');
+      t.textContent=light?'☀️':'🌙';
+      localStorage.setItem(KEY, light?'light':'dark');
+    });
+  })();
+</script>
+</body>
+</html>

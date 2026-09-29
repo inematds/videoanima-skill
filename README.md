@@ -1,5 +1,7 @@
 # videoanima
 
+**🇧🇷 [Português](README.md) · 🇺🇸 [English](README.en.md) · 🇪🇸 [Español](README.es.md)**
+
 História → **decupagem cinematográfica** → imagens → clipes → filme vertical narrado,
 com provedor de imagem e de vídeo escolhíveis por parâmetro.
 

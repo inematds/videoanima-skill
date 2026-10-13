@@ -203,10 +203,10 @@ def _ratio(size):
 
 
 # ==================================================================== VIDEO ===
-def _frames(seg):
-    """Agnes: 8n+1, teto 441 (18.4s @24fps)."""
-    n = round((seg * FPS - 1) / 8)
-    return max(9, min(441, int(n * 8 + 1)))
+def _segundos_25(seg):
+    """agnes-video-2.5-flash: seconds STRING 4..12 (pra cima, folga 0,1 s)."""
+    import math
+    return str(int(min(12, max(4, math.ceil(seg - 0.1)))))
 
 
 def agnes_submit(kf_a, kf_b, prompt, seg, negativo=None, tentativas=4):
@@ -216,20 +216,26 @@ def agnes_submit(kf_a, kf_b, prompt, seg, negativo=None, tentativas=4):
     (submete -> espera -> submete) cada clipe custava 170s de parede, dos quais
     ~140s eram espera ociosa. Submetendo todos e colhendo depois, o tempo de
     parede cai para o teto do rate limit + a geracao do ultimo lote.
+
+    2026-10-13: o agnes-video-v2.0 SAIU da API (503 "No available channel").
+    O 2.5-flash usa mode "keyframe" + first_frame/last_frame, seconds 4..12,
+    size "720P" + aspect_ratio; recusa num_frames/width/height/frame_rate.
+    `negativo` segue na assinatura: vai no fim do prompt.
     """
-    body = {'model': 'agnes-video-v2.0', 'prompt': prompt,
-            'num_frames': _frames(seg), 'frame_rate': FPS, 'seed': SEED,
-            'width': 736, 'height': 1312,
-            'negative_prompt': negativo or NEGATIVO_PADRAO,
-            'extra_body': {'image': [kf_a, kf_b], 'mode': 'keyframes'}}
+    body = {'model': 'agnes-video-2.5-flash',
+            'prompt': f'{prompt} Avoid: {negativo or NEGATIVO_PADRAO}.',
+            'mode': 'keyframe', 'seconds': _segundos_25(seg), 'n': 1,
+            'size': '720P', 'aspect_ratio': '9:16', 'first_frame': kf_a}
+    if kf_b:
+        body['last_frame'] = kf_b
     h = {'Authorization': 'Bearer ' + chave('AGNES_API_KEY')}
     for t in range(1, tentativas + 1):
         try:
             d = _post('https://apihub.agnes-ai.com/v1/videos', body, h, timeout=300)
-            return d.get('video_id') or d.get('task_id') or d.get('id')
+            return d.get('id') or d.get('task_id') or d.get('video_id')
         except urllib.error.HTTPError as e:
             print(f'    agnes submit HTTP {e.code}', flush=True)
-            time.sleep(70 if e.code == 429 else 6 * t)
+            time.sleep(70 if e.code == 429 else 30 * t)   # 503 video_queue_full e comum
         except Exception as e:
             print(f'    agnes submit: {str(e)[:90]}', flush=True)
             time.sleep(6 * t)
@@ -244,12 +250,14 @@ def agnes_estado(vid, dest):
     """
     h = {'Authorization': 'Bearer ' + chave('AGNES_API_KEY')}
     try:
-        d = _get('https://apihub.agnes-ai.com/agnesapi?video_id=' + vid, h)
+        d = _get('https://apihub.agnes-ai.com/v1/videos/' + vid, h)   # 2.5: /v1/videos/<id>
     except urllib.error.HTTPError as e:
         # MEDIDO: quando o job morre do lado da Agnes, a consulta passa a devolver
         # 400/404 — nao um status 'failed'. Engolir isso como 'esperando' fazia o
         # job ocupar a fila ate o prazo (25 min) em vez de falhar em segundos.
-        if e.code in (400, 404):
+        # 2.5-flash: 404 logo apos o POST e a task ainda nao registrada (musicavideo
+        # MVD#89) -> so 400 conta como job morto; o prazo de quem chama fecha o resto.
+        if e.code == 400:
             corpo = ''
             try:
                 corpo = e.read().decode()[:120]
@@ -262,7 +270,8 @@ def agnes_estado(vid, dest):
         return 'esperando'
     st = d.get('status')
     if st == 'completed':
-        u = d.get('url') or (d.get('data') or [{}])[0].get('url') or d.get('video_url')
+        u = (d.get('video_url') or d.get('url') or (d.get('metadata') or {}).get('url')
+             or (d.get('data') or [{}])[0].get('url'))
         if not u:
             return 'erro'
         try:
@@ -275,7 +284,7 @@ def agnes_estado(vid, dest):
 
 
 def vid_agnes(dest, kf_a, kf_b, prompt, seg, tentativas=4, negativo=None):
-    """Agnes agnes-video-v2.0 em modo keyframes [A, B] — US$ 0. Caminho serial.
+    """Agnes agnes-video-2.5-flash em modo keyframe [A, B] — US$ 0. Caminho serial. Clipe de 4 a 12 s.
 
     Rate limit REAL de 5 req/min (429) na criacao E no polling. O `size` da resposta
     mente (pede 736x1312, entrega arredondado): medir com ffprobe se importar.
